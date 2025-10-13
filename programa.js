@@ -1,43 +1,95 @@
-async function  CargarLibros() {
-    try{
-        const url = "https://openlibrary.org/search.json?q=*&sort=random&limit=33&fields=key,title,author_name,cover_i,subject,subject_facet,subject_key"
-        const respuesta = await fetch(url);
-        const datos =  await respuesta.json();
-        const docs = datos.docs || [];
-        // aqui empezamos a ver su faltan las categorias para las recomendaciones
-        const work = docs.filter(doc => !doc.subject && doc.key);
-        const workMap = {};
-        await Promise.all(work.map(async doc => {
-            const workR = await fetch("https://openlibrary.org" + doc.key + ".json");
-            const jWork = await workR.json();
-            workMap[doc.key] = jWork.language || null;
-            workMap[doc.key] = jWork.subjects || null;
-        }));
-        // Ahora ya hacemos el docs con las categorias
-         return docs.map(doc => {
-            const subjects = doc.subject || doc.subject_facet || workMap[doc.key] || [];
-            return {
-                titulo: doc.title,
-                autores: doc.author_name || [],
-                categorias: subjects,
-                portada: doc.cover_i ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-M.jpg" : null,
-                url:"https://openlibrary.org" + doc.key,
-                idioma: doc.language || []
-            };
-        });
-        
-    }catch(error){
-        console.log("Error: " + error);
-    }
-}
+      const API_KEY = "AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o";
+      const BASE = "https://www.googleapis.com/books/v1/volumes";
+      //const urlCategorias = `https://www.googleapis.com/books/v1/volumes?q=subject:${categoria}$&maxResults=10&startIndex=0&orderBy=relevance&key=AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o`;
+      //const urlBusqueda = `https://www.googleapis.com/books/v1/volumes?q=${busqueda}&maxResults=10&startIndex=0&orderBy=relevance&key=${API_KEY}`;
 
-// function BuscarTitulo(titulo) {
-//     const respuesta = fetch("http://openLibrary.org/search.json?title=" + titulo)
-//         .then(res => res.json())
-// }
-recomendaciones1 = CargarLibros()
-recomendaciones2 = CargarLibros()
-Promise.all([recomendaciones1, recomendaciones2]).then(values => {
-    const recomendaciones = [...values[0], ...values[1]];
-    console.log(recomendaciones)
-})
+      async function buscarLibrosCategoria(categoria){
+        const urlCategorias = `https://www.googleapis.com/books/v1/volumes?q=subjects:${categoria}$&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o`;
+        const busqueda = await fetch(urlCategorias);
+        if(!busqueda.ok){
+          throw new Error(`ERROR en la llamada a la API: ${busqueda.status}`);
+        }
+        const datos = await busqueda.json();
+        const items = datos.items || [];
+
+        const soloPortada = items.filter(item => mejorPortada(item.volumeInfo?.imageLinks))
+        .map(item => {
+          const info = item.volumeInfo || {};
+          return {
+            id: item.id,
+            titulo: item.volumeInfo.title,
+            autores: item.volumeInfo.authors || ["Desconocido"],
+            categoria: item.volumeInfo.categories ? item.volumeInfo.categories[0] : "Sin categoría",
+            portada: mejorPortada(info.imageLinks),
+            descripcion: item.volumeInfo.description || "Sin descripción",
+            paginas: item.volumeInfo.pageCount || "Desconocido",
+            editorial: item.volumeInfo.publisher || "Desconocido",
+            fecha: item.volumeInfo.publishedDate || "Desconocido",
+            idioma: item.volumeInfo.language || "Desconocido",
+            enlace: item.volumeInfo.infoLink || "",
+          };
+        });
+        return soloPortada;
+      }
+
+      
+
+
+       async function buscarLibros(busqueda){
+        const urlBusqueda = `https://www.googleapis.com/books/v1/volumes?q=${busqueda}&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o`;
+        const busquedaLibros =  await fetch(urlBusqueda)
+        if(!busquedaLibros.ok){
+          throw new Error(`ERROR en la llamada a la API: ${busquedaLibros.status}`);
+        }
+        const datos = await busquedaLibros.json();
+        const items = datos.items || [];
+
+        const soloPortada = items.filter(item => mejorPortada(item.volumeInfo?.imageLinks))
+        .map(item => {
+          const info = item.volumeInfo || {};
+          return {
+            id: item.id,
+            titulo: item.volumeInfo.title,
+            autores: item.volumeInfo.authors || ["Desconocido"],
+            categoria: item.volumeInfo.categories ? item.volumeInfo.categories[0] : "Sin categoría",
+            portada: mejorPortada(info.imageLinks),
+            descripcion: item.volumeInfo.description || "Sin descripción",
+            paginas: item.volumeInfo.pageCount || "Desconocido",
+            editorial: item.volumeInfo.publisher || "Desconocido",
+            fecha: item.volumeInfo.publishedDate || "Desconocido",
+            idioma: item.volumeInfo.language || "Desconocido",
+            enlace: item.volumeInfo.infoLink || "",
+          };
+        });
+        return soloPortada;
+      }
+
+      function mejorPortada(imageLinks){
+        if(!imageLinks) return null;
+        const posibles = [
+          imageLinks.extraLarge,
+          imageLinks.large,
+          imageLinks.medium,
+          imageLinks.small,
+          imageLinks.thumbnail,
+          imageLinks.smallThumbnail
+        ].filter(Boolean);
+        return posibles.length ? elLink(posibles[0]) : null;
+      }
+      function elLink(url){
+        return url ? url.replace(/^http:\/\//, 'https://') : url;
+      }
+
+
+
+      const busqueda = document.getElementById("busqueda");
+      const botonBuscar = document.getElementById("btnBuscar"); 
+
+      botonBuscar.addEventListener("click", async () => {
+        const librosBuscados =  await buscarLibros(busqueda.value)
+        console.log(librosBuscados);
+      });
+
+      const buscarPorGustos = buscarLibrosCategoria("Fiction")
+      console.log(buscarPorGustos);
+      
