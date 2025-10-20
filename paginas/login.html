@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Biblioteca Virtual - Iniciar sesión</title>
+    <!-- Unas fuentes que vamos a usar pal login -->
+    <link rel="preconnect" href="https://fonts-gstatic.com" crossorigin/>
+    <link rel="https://fonts-googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" ref="stylesheet"/>
+
+
+    <link rel="stylesheet" href="../assets/css login y reg/base.css"/>
+    <link rel="stylesheet" href="../assets/css login y reg/componentes.css"/>
+    <link rel="stylesheet" href="../assets/css login y reg/login.css"/>
+</head>
+<body>
+    <main class="page">
+        <section class="shell">
+            <h1 class="brand">Biblioteca Virtual</h1>
+            <div class="card">
+                <h2 class="card__tittle"> Iniciar Sesión</h2>
+                <form id="form-login" class="form" method="post" autocomplete="on" novalidate>
+                    <div class="field">
+                        <label class="sr-only" for="usuario">Usuario</label>
+                        <input id="usuario" name="usuario" type="text" placeholder="Usuario" required/>
+                    </div>
+
+                    <div class="field with-toggle">
+                        <label class="sr-only" for="password">Contraseña</label>
+                        <input type="password" name="password" id="password" placeholder="Contraseña" required autocomplete="current-password"/>
+                        <button type="button" class="toggle" aria-controls="password" aria-pressed="false" title="Mostrar u ocultar contraseña">Mostrar</button>
+                    </div>
+
+                    <button class="btn" type="submit">
+                        Ingresar
+                    </button>
+
+                </form>
+
+                <p class="helper">
+                    ¿No tienes una cuenta?
+                    <a class="link" href="registrar.html">Registrarse</a>
+                </p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

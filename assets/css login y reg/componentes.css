@@ -1,0 +1,102 @@
+/* Layout centrado */
+.page{
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+/* Tarjeta exterior (marco grande) */
+.shell{
+  width: min(820px, 92vw);
+  background: var(--shell);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: clamp(24px, 4vw, 48px);
+  text-align: center;
+}
+
+/* Título principal */
+.brand{
+  margin: 0 0 24px 0;
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: .4px;
+}
+
+/* Tarjeta interna */
+.card{
+  margin: 0 auto;
+  max-width: 640px;
+  background: var(--card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: clamp(20px, 3.5vw, 36px);
+}
+
+.card__title{
+  margin: 4px 0 18px 0;
+  font-size: clamp(20px, 3.2vw, 32px);
+  font-weight: 700;
+}
+
+/* Formulario e inputs */
+.form{
+  display: grid;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.field input{
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #e6edf6;
+  background: #f9fbff;
+  border-radius: 12px;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.field input::placeholder{ color: #9bb0c5; }
+.field input:focus{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--ring);
+  background: #ffffff;
+}
+
+/* Botón principal */
+.btn{
+  margin-top: 6px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  cursor: pointer;
+  transition: filter .15s, background .2s, transform .02s;
+}
+.btn:hover{ background: var(--primary-hover); filter: saturate(1.05); }
+.btn:active{ transform: translateY(1px); }
+
+/* Pie con enlace */
+.helper{
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+.link{
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.link:hover{ text-decoration: underline; }
+
+/* Responsive sutil */
+@media (max-width: 480px){
+  .shell{ padding: 22px; }
+  .card{ padding: 18px; }
+}

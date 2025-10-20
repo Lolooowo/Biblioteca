@@ -1,0 +1,33 @@
+* { box-sizing: border-box;}
+html, body { height: 100%}
+:root {
+    --bg: #e9f3fb;
+    --shell: #ffffff;
+    --card: #ffffff;
+    --text: #24364b;
+    --muted: #6678c6;
+    --primary: #3b78c6;
+    --primary-hover: #336bd8;
+    --ring: rgba(59, 120, 198, .35);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --shadow-lg: 0 20px 50px rgba(24,39,75,.12);
+    --shadow-md: 0 10px 30px rgba(24,39,75,.1);
+    --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; 
+}
+body{
+    margin:0;
+    font-family: var(--font);
+    color: var(--text);
+    background: radial-gradient(1200px 800px at 20% 10%, #f3f8fe 0%, var(--bg) 60%);
+}
+.sr-only {
+    position: absolute;
+    height: 1px; width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+    border: 0;
+    padding: 0;
+    margin: -1px;
+}

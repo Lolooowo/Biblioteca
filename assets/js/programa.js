@@ -11,6 +11,9 @@
         }
         const datos = await busqueda.json();
         const items = datos.items || [];
+        if(items.length === 0){
+          throw new Error("No se encontraron libros para la categoría seleccionada.");
+        }
 
         const soloPortada = items.filter(item => mejorPortada(item.volumeInfo?.imageLinks))
         .map(item => {
@@ -43,6 +46,9 @@
         }
         const datos = await busquedaLibros.json();
         const items = datos.items || [];
+        if(items.length === 0){
+          throw new Error("No se encontraron libros para la búsqueda realizada.");
+        }
 
         const soloPortada = items.filter(item => mejorPortada(item.volumeInfo?.imageLinks))
         .map(item => {
@@ -92,4 +98,18 @@
 
       const buscarPorGustos = buscarLibrosCategoria("Fiction")
       console.log(buscarPorGustos);
-      
+
+
+      // Para mostrar y ocultar la contraseña
+
+      const password = $("#password");
+      const btnToggle = $(".toggle");
+
+      btnToggle.addEventListener("click", () => {
+        const isPassword = password.getAttribute("type") === "password";
+        password.setAttribute("type", isPassword ? "text" : "password");
+        btnToggle.textContent = isPassword ? "Ocultar" : "Mostrar";
+        const presionado = btnToggle.getAttribute("aria-pressed") === "true";
+        btnToggle.setAttribute("aria-pressed", (!presionado).toString());
+        password.focus({ preventScroll: true });
+      });
