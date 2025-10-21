@@ -1,0 +1,46 @@
+/* Línea divisoria suave */
+.divider{
+  border: 0;
+  height: 1px;
+  background: #edf3fa;
+  margin: 10px 0 12px;
+}
+
+/* Bloque de categorías */
+.cats__title{
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.chips{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+/* Chip “pill” */
+.chip{
+  appearance: none;
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #eaf3ff;
+  color: #2f4a68;
+  box-shadow: 0 1px 0 #d8e7ff inset, 0 1px 2px rgba(0,0,0,.04);
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform .02s, filter .15s, background .2s, box-shadow .2s;
+}
+.chip:hover{ filter: saturate(1.05); }
+.chip:active{ transform: translateY(1px); }
+
+/* Estado seleccionado */
+.chip.is-active{
+  background: #dbe9ff;
+  box-shadow: 0 0 0 3px rgba(59,120,198,.22);
+}
+
+/* Ajuste de separación entre botón y bloque categorías */
+.cats + .btn { margin-top: 8px; }

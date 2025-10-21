@@ -103,7 +103,7 @@
       // Para mostrar y ocultar la contraseña
 
       const password = $("#password");
-      const btnToggle = $(".toggle");
+      const btnToggle = getElementById("xd");
 
       btnToggle.addEventListener("click", () => {
         const isPassword = password.getAttribute("type") === "password";

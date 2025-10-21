@@ -3,9 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro</title>
+    <title>Biblioteca Virtual - Registrar</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../assets/css login y reg/base.css"/>
+    <link rel="stylesheet" href="../assets/css login y reg/componentes.css"/>
+    <link rel="stylesheet" href="../assets/css login y reg/registrar.css"/>
 </head>
 <body>
-    <h1>asdsa</h1>
+    <main class="page">
+    <section class="shell">
+      <h1 class="brand">Biblioteca Virtual</h1>
+
+      <div class="card">
+        <h2 class="card__title">Registrarse</h2>
+
+        <form id="form-registro" class="form" method="post" autocomplete="on" novalidate>
+          <div class="field">
+            <label class="sr-only" for="usuario">Usuario</label>
+            <input id="usuario" name="usuario" type="text" placeholder="Usuario" required>
+          </div>
+
+          <div class="field">
+            <label class="sr-only" for="contrasena">Contraseña</label>
+            <input id="contrasena" name="contrasena" type="password" placeholder="Contraseña" minlength="6" required>
+          </div>
+
+          <div class="field">
+            <label class="sr-only" for="confirmar">Confirmar contraseña</label>
+            <input id="confirmar" name="confirmar" type="password" placeholder="Confirmar contraseña" minlength="6" required>
+          </div>
+
+          <hr class="divider" aria-hidden="true">
+
+          <!-- Categorías -->
+          <div class="cats">
+            <h3 class="cats__title">Categorías</h3>
+            <div class="chips" role="group" aria-label="Selecciona tus categorías favoritas">
+              <!-- Cada chip usa data-value; al enviar, auth.js junta las seleccionadas -->
+              <button type="button" class="chip" data-value="Terror">Terror</button>
+              <button type="button" class="chip" data-value="Literatura">Literatura</button>
+              <button type="button" class="chip" data-value="Historia">Historia</button>
+              <button type="button" class="chip" data-value="Ciencia">Ciencia</button>
+              <button type="button" class="chip" data-value="Fantasía">Fantasía</button>
+              <button type="button" class="chip" data-value="Romance">Romance</button>
+              <button type="button" class="chip" data-value="Aventura">Aventura</button>
+              <button type="button" class="chip" data-value="Arte">Arte</button>
+              <button type="button" class="chip" data-value="Música">Música</button>
+              <button type="button" class="chip" data-value="Ciencia ficción">Ciencia ficción</button>
+              <button type="button" class="chip" data-value="Biografía">Biografía</button>
+              <button type="button" class="chip" data-value="Poesía">Poesía</button>
+              <button type="button" class="chip" data-value="Misterio">Misterio</button>
+              <button type="button" class="chip" data-value="Autoayuda">Autoayuda</button>
+            </div>
+            <!-- Campo oculto donde guardaremos las categorías seleccionadas -->
+            <input type="hidden" id="categorias" name="categorias" value="">
+          </div>
+
+          <button class="btn" type="submit">Registrarse</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
 </body>
 </html>
