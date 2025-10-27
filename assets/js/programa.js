@@ -1,3 +1,6 @@
+      const $ = (sel, ctx = document) => ctx.querySelector(sel);
+      const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+      
       const API_KEY = "AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o";
       const BASE = "https://www.googleapis.com/books/v1/volumes";
       //const urlCategorias = `https://www.googleapis.com/books/v1/volumes?q=subject:${categoria}$&maxResults=10&startIndex=0&orderBy=relevance&key=AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o`;
@@ -98,18 +101,3 @@
 
       const buscarPorGustos = buscarLibrosCategoria("Fiction")
       console.log(buscarPorGustos);
-
-
-      // Para mostrar y ocultar la contraseña
-
-      const password = $("#password");
-      const btnToggle = getElementById("xd");
-
-      btnToggle.addEventListener("click", () => {
-        const isPassword = password.getAttribute("type") === "password";
-        password.setAttribute("type", isPassword ? "text" : "password");
-        btnToggle.textContent = isPassword ? "Ocultar" : "Mostrar";
-        const presionado = btnToggle.getAttribute("aria-pressed") === "true";
-        btnToggle.setAttribute("aria-pressed", (!presionado).toString());
-        password.focus({ preventScroll: true });
-      });

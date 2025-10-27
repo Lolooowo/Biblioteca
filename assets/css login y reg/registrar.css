@@ -13,7 +13,11 @@
   font-weight: 700;
   color: var(--text);
 }
-
+.cats_count{
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 14px;
+}
 .chips{
   display: flex;
   flex-wrap: wrap;
@@ -41,6 +45,34 @@
   background: #dbe9ff;
   box-shadow: 0 0 0 3px rgba(59,120,198,.22);
 }
+.chip.is-active::after{
+  content: "";
+  position: absolute;
+  right: 10px; top:50%;transform: translateY(-50%);
+  font-size: 14px; line-height: 1; opacity: .85;
+}
+.cats_status{
+  margin-top: 8px;
+}
+.chips--mini{
+  gap: 8px 8px;
+}
+.chips--mini .chip--mini{
+  padding: 6px, 10px; font-size: 12px; border-radius: 999px;
+  background: #eef5ff; color: #2f4a68; box-shadow: 0 1px 0 #dfeaff insert;
+  cursor: default;
+}
+@keyframes pulseSelect {
+  0%{
+    box-shadow: 0 0 0 0 rgba(59, 120, 198, .25);
+  }
+  100%{box-shadow: 0 0 0 10px rgba(59,120,198,0);}
+}
+.chip.anim-pulse{
+  animation: pulseSelect .35s ease-out;
+}
 
 /* Ajuste de separación entre botón y bloque categorías */
 .cats + .btn { margin-top: 8px; }
+
+

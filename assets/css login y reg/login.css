@@ -19,3 +19,24 @@
     outline: 2px, solid var(--primary);
     outline-offset: 2px;
 }
+.field.with-toggle2{
+    position: relative;
+}
+.field.with-toggle2 .toggle2{
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    padding: 8px 10px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--primary);
+    cursor: pointer;
+    border-radius: 8px;
+}
+.field.with-toggle2 .toggle2:focus-visible{
+    outline: 2px, solid var(--primary);
+    outline-offset: 2px;
+}

@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="../assets/css login y reg/login.css"/>
 </head>
 <body>
+    <script src="../assets/js/login.js" defer></script>
     <main class="page">
         <section class="shell">
             <h1 class="brand">Biblioteca Virtual</h1>
@@ -28,13 +29,14 @@
                     <div class="field with-toggle">
                         <label class="sr-only" for="password">Contraseña</label>
                         <input type="password" name="password" id="password" placeholder="Contraseña" required autocomplete="current-password"/>
-                        <button type="button" class="toggle" aria-controls="password" aria-pressed="false" title="Mostrar u ocultar contraseña" id="xd">Mostrar</button>
+                        <button type="button" class="toggle" aria-controls="password" aria-pressed="true" title="Mostrar u ocultar contraseña">Mostrar</button>
                     </div>
 
-                    <button class="btn" type="submit">
+                    <button class="btn" type="submit" id="btnLogin">
                         Ingresar
                     </button>
 
+                    
                 </form>
 
                 <p class="helper">
