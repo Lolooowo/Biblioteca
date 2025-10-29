@@ -112,6 +112,70 @@ class Usuario:
         Usuario._set_intentos(user, fails, None)
         return {"ok": False, "locked": False, "attempts_left": MAX_INTENTOS - fails, "message": "Usuario o contraseña incorrectos"}, 401
 
+class Libro:
+    def __init__(self, id, titulo, autores, categoria, portada, descripcion, paginas, editorial, idioma, enlace):
+        self.id = id
+        self.titulo = titulo
+        self.autores = autores
+        self.categoria = categoria
+        self.portada = portada
+        self.descripcion = descripcion
+        self.paginas = paginas
+        self.editorial = editorial
+        self.idioma = idioma
+        self.enlace = enlace
+
+    @staticmethod
+    def init_tablas():
+        with conn() as c:
+            c.execute("""
+            CREATE TABLE IF NOT EXISTS libros (
+                   id_libro INTEGER PRIMARY KEY,
+                   titulo TEXT NOT NULL,
+                   autores TEXT NOT NULL,
+                   categoria TEXT NOT NULL,
+                   portada TEXT NOT NULL,
+                   descripcion TEXT NOT NULL,
+                   paginas INTEGER NOT NULL,
+                   editorial TEXT NOT NULL,
+                   idioma TEXT NOT NULL,
+                   enlace TEXT NOT NULL
+            )
+            """)
+
+    @staticmethod
+    def agregar(payload):
+        id_libro = payload.get("id_libro") or payload.get("id")
+        titulo = (payload.get("titulo") or "").strip()
+        autores = (payload.get("autores") or "").strip()
+        categoria = (payload.get("categoria") or "").strip()
+        portada = (payload.get("portada") or "").strip()
+        descripcion = (payload.get("descripcion") or "").strip()
+        paginas = payload.get("paginas")
+        editorial = (payload.get("editorial") or "").strip()
+        idioma = (payload.get("idioma") or "").strip()
+        enlace = (payload.get("enlace") or "").strip()
+
+        if id_libro is None or not isinstance(id_libro, int):
+            return {"ok": False, "message": "id_libro debe ser un entero"}, 400
+        campos_txt = [titulo, autores, categoria, portada, descripcion, editorial, idioma, enlace]
+        if any(not x for x in campos_txt):
+            return {"ok": False, "message": "Faltan campos de texto obligatorios"}, 400
+        if not isinstance(paginas, int) or paginas <= 0:
+            return {"ok": False, "message": "paginas debe ser entero > 0"}, 400
+
+        try:
+            with conn() as c:
+                c.execute(
+                    """INSERT INTO libros
+                       (id_libro, titulo, autores, categoria, portada, descripcion, paginas, editorial, idioma, enlace)
+                       VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    (id_libro, titulo, autores, categoria, portada, descripcion, paginas, editorial, idioma, enlace)
+                )
+            return {"ok": True, "message": "Libro agregado", "id_libro": id_libro}, 201
+        except sqlite3.IntegrityError:
+            return {"ok": False, "message": "El libro ya existe (id duplicado)"}, 409
+
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
@@ -130,8 +194,14 @@ def api_login():
     body, code = Usuario.login(user, contrasena)
     return jsonify(body), code
 
+@app.route("/api/libros", methods=["POST"])
+def api_libros_create():
+    data = request.get_json() or {}
+    body, code = Libro.agregar(data)
+    return jsonify(body), code
 if __name__ == "__main__":
     Usuario.init_tablas()
+    Libro.init_tablas()
     PORT = int(os.environ.get("PORT", 5000))
     HOST = os.environ.get("HOST", "127.0.0.1")
     print(f"API en http://{HOST}:{PORT}")
