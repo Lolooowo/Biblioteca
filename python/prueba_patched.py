@@ -1,21 +1,29 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime, timedelta
 import json
 import os
-import random   # <-- para elegir categoría aleatoria
+import random
 
 DB_NAME = "biblioteca.db"
 LOCK_MINUTES = 3
 MAX_INTENTOS = 3
 
 app = Flask(__name__)
+app.secret_key = "elizabethrosebloodflame"
+
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://127.0.0.1:5500", "http://127.0.0.1:5501", "http://localhost:5500", "http://localhost:5501"],
+        "origins": [
+            "http://127.0.0.1:5500",
+            "http://127.0.0.1:5501",
+            "http://localhost:5500",
+            "http://localhost:5501"
+        ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
     }
 })
 
@@ -24,7 +32,29 @@ def conn():
     c.row_factory = sqlite3.Row
     c.execute("PRAGMA foreign_keys = ON;")
     return c
-
+def leyendo():
+    with conn() as c:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS leyendo (
+                user     TEXT    NOT NULL,
+                id_libro INTEGER NOT NULL,
+                plan     INTEGER NOT NULL,
+                PRIMARY KEY (user, id_libro),
+                FOREIGN KEY (user)     REFERENCES usuarios(usuario)   ON DELETE CASCADE,
+                FOREIGN KEY (id_libro) REFERENCES libros(id_libro)    ON DELETE CASCADE
+            );
+        """)
+def por_leer():
+    with conn() as c:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS por_leer (
+                user     TEXT    NOT NULL,
+                id_libro INTEGER NOT NULL,
+                PRIMARY KEY (user, id_libro),
+                FOREIGN KEY (user)     REFERENCES usuarios(usuario)   ON DELETE CASCADE,
+                FOREIGN KEY (id_libro) REFERENCES libros(id_libro)    ON DELETE CASCADE
+            );
+        """)
 class Usuario:
     @staticmethod
     def init_tablas():
@@ -105,10 +135,12 @@ class Usuario:
                 )
             Usuario._set_intentos(usuario, 0, None)
             cat_random = Usuario._pick_random_categoria(categorias_list)
+            session["usuario"] = usuario
             return {
                 "ok": True,
                 "message": "Usuario registrado",
-                "categoria_sugerida": cat_random
+                "categoria_sugerida": cat_random,
+                "usuario": usuario
             }, 201
         except sqlite3.IntegrityError:
             return {"ok": False, "message": "El usuario ya existe"}, 409
@@ -142,16 +174,17 @@ class Usuario:
 
         if row and row["password"] == password:
             Usuario._set_intentos(user, 0, None)
-            cats = []
             try:
                 cats = json.loads(row["categorias"])
             except Exception:
                 cats = []
             cat_random = Usuario._pick_random_categoria(cats)
+            session["usuario"] = user
             return {
                 "ok": True,
                 "message": "Bienvenido",
-                "categoria_sugerida": cat_random
+                "categoria_sugerida": cat_random,
+                "usuario": user
             }, 200
 
         fails = (fails or 0) + 1
@@ -174,18 +207,6 @@ class Usuario:
         }, 401
 
 class Libro:
-    def __init__(self, id, titulo, autores, categoria, portada, descripcion, paginas, editorial, idioma, enlace):
-        self.id = id
-        self.titulo = titulo
-        self.autores = autores
-        self.categoria = categoria
-        self.portada = portada
-        self.descripcion = descripcion
-        self.paginas = paginas
-        self.editorial = editorial
-        self.idioma = idioma
-        self.enlace = enlace
-
     @staticmethod
     def init_tablas():
         with conn() as c:
@@ -255,6 +276,14 @@ def api_login():
     body, code = Usuario.login(user, contrasena)
     return jsonify(body), code
 
+@app.route("/api/me", methods=["GET"])
+def api_me():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión"}), 401
+    cats = Usuario._get_categorias_usuario(user)
+    return jsonify({"ok": True, "usuario": user, "categorias": cats}), 200
+
 @app.route("/api/libros", methods=["POST"])
 def api_libros_create():
     data = request.get_json() or {}
@@ -264,6 +293,8 @@ def api_libros_create():
 if __name__ == "__main__":
     Usuario.init_tablas()
     Libro.init_tablas()
+    leyendo()       
+    por_leer()
     PORT = int(os.environ.get("PORT", 5000))
     HOST = os.environ.get("HOST", "127.0.0.1")
     print(f"API en http://{HOST}:{PORT}")
