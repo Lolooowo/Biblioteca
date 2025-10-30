@@ -4,6 +4,7 @@ import sqlite3
 from datetime import datetime, timedelta
 import json
 import os
+import random   # <-- para elegir categoría aleatoria
 
 DB_NAME = "biblioteca.db"
 LOCK_MINUTES = 3
@@ -67,6 +68,26 @@ class Usuario:
             """, (user, fails, locked_until))
 
     @staticmethod
+    def _get_categorias_usuario(usuario: str):
+        with conn() as c:
+            fila = c.execute(
+                "SELECT categorias FROM usuarios WHERE usuario = ?",
+                (usuario,)
+            ).fetchone()
+        if not fila:
+            return []
+        try:
+            return json.loads(fila["categorias"])
+        except Exception:
+            return []
+
+    @staticmethod
+    def _pick_random_categoria(cats):
+        if not cats:
+            return None
+        return random.choice(cats)
+
+    @staticmethod
     def registrar(usuario, password, tiempo_libre, categorias_list):
         if not usuario or not password:
             return {"ok": False, "message": "Falta usuario o password"}, 400
@@ -74,6 +95,7 @@ class Usuario:
             return {"ok": False, "message": "Tiempo libre debe ser un entero"}, 400
         if not isinstance(categorias_list, list) or not all(isinstance(x, str) for x in categorias_list):
             return {"ok": False, "message": "categorias debe ser un array de strings"}, 400
+
         categorias_json = json.dumps(categorias_list, ensure_ascii=False)
         try:
             with conn() as c:
@@ -82,7 +104,12 @@ class Usuario:
                     (usuario, password, tiempo_libre, categorias_json)
                 )
             Usuario._set_intentos(usuario, 0, None)
-            return {"ok": True, "message": "Usuario registrado"}, 201
+            cat_random = Usuario._pick_random_categoria(categorias_list)
+            return {
+                "ok": True,
+                "message": "Usuario registrado",
+                "categoria_sugerida": cat_random
+            }, 201
         except sqlite3.IntegrityError:
             return {"ok": False, "message": "El usuario ya existe"}, 409
 
@@ -90,27 +117,61 @@ class Usuario:
     def login(user, password):
         if not user or not password:
             return {"ok": False, "message": "Credenciales incompletas"}, 400
+
         fails, locked_until = Usuario._get_intentos(user)
         now = datetime.utcnow()
+
         if locked_until:
             try:
                 locked_dt = datetime.fromisoformat(locked_until)
                 if now < locked_dt:
-                    return {"ok": False, "locked": True, "attempts_left": 0, "message": "Cuenta bloqueada temporalmente"}, 423
+                    return {
+                        "ok": False,
+                        "locked": True,
+                        "attempts_left": 0,
+                        "message": "Cuenta bloqueada temporalmente"
+                    }, 423
             except Exception:
                 pass
+
         with conn() as c:
-            row = c.execute("SELECT password FROM usuarios WHERE usuario = ?", (user,)).fetchone()
+            row = c.execute(
+                "SELECT password, categorias FROM usuarios WHERE usuario = ?",
+                (user,)
+            ).fetchone()
+
         if row and row["password"] == password:
             Usuario._set_intentos(user, 0, None)
-            return {"ok": True, "message": "Bienvenido"}, 200
+            cats = []
+            try:
+                cats = json.loads(row["categorias"])
+            except Exception:
+                cats = []
+            cat_random = Usuario._pick_random_categoria(cats)
+            return {
+                "ok": True,
+                "message": "Bienvenido",
+                "categoria_sugerida": cat_random
+            }, 200
+
         fails = (fails or 0) + 1
         if fails >= MAX_INTENTOS:
             bloqueado_hasta = (now + timedelta(minutes=LOCK_MINUTES)).isoformat()
             Usuario._set_intentos(user, fails, bloqueado_hasta)
-            return {"ok": False, "locked": True, "attempts_left": 0, "message": "Demasiados intentos. Cuenta bloqueada temporalmente"}, 401
+            return {
+                "ok": False,
+                "locked": True,
+                "attempts_left": 0,
+                "message": "Demasiados intentos. Cuenta bloqueada temporalmente"
+            }, 401
+
         Usuario._set_intentos(user, fails, None)
-        return {"ok": False, "locked": False, "attempts_left": MAX_INTENTOS - fails, "message": "Usuario o contraseña incorrectos"}, 401
+        return {
+            "ok": False,
+            "locked": False,
+            "attempts_left": MAX_INTENTOS - fails,
+            "message": "Usuario o contraseña incorrectos"
+        }, 401
 
 class Libro:
     def __init__(self, id, titulo, autores, categoria, portada, descripcion, paginas, editorial, idioma, enlace):
@@ -199,6 +260,7 @@ def api_libros_create():
     data = request.get_json() or {}
     body, code = Libro.agregar(data)
     return jsonify(body), code
+
 if __name__ == "__main__":
     Usuario.init_tablas()
     Libro.init_tablas()
