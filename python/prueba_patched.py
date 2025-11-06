@@ -7,9 +7,9 @@ import os
 import random
 
 DB_NAME = "biblioteca.db"
-LOCK_MINUTES = 3
+LOCK_MINUTOS = 3
 MAX_INTENTOS = 3
-
+PAG_POR_HORA = 30
 app = Flask(__name__)
 app.secret_key = "elizabethrosebloodflame"
 
@@ -294,16 +294,45 @@ def api_agregar_leido():
     return jsonify({"ok": True}), 201
 @app.route("/api/leyendo", methods=["POST"])
 def api_agregar_leyendo():
-    user = session.get("usuario")
-    if not user:
-        return jsonify({"ok": False, "message": "No hay sesión"}), 401
     data = request.get_json() or {}
+    usuario = session.get("usuario")
+
+    if not usuario:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
     id_libro = data.get("id_libro")
+    horas_dia = data.get("horas_dia")
     if not isinstance(id_libro, int):
-        return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
+        return jsonify({"ok": False, "message": "id_libro debe ser un número entero"}), 400
+    if not isinstance(horas_dia, (int, float)) or horas_dia <= 0:
+        return jsonify({"ok": False, "message": "horas_dia debe ser un número mayor que 0"}), 400
     with conn() as c:
-        c.execute("INSERT OR IGNORE INTO leyendo (user, id_libro) VALUES (?, ?)", (user, id_libro))
-    return jsonify({"ok": True}), 201
+        fila = c.execute("SELECT tiempo FROM usuarios WHERE usuario = ?", (usuario,)).fetchone()
+        if not fila:
+            return jsonify({"ok": False, "message": "Usuario no encontrado"}), 404
+        tiempo_libre = fila["tiempo"]
+        if horas_dia > tiempo_libre:
+            return jsonify({"ok": False, "message": "No tienes suficiente tiempo libre para este plan"}), 400
+        existe = c.execute(
+            "SELECT 1 FROM leyendo WHERE user = ? AND id_libro = ?",
+            (usuario, id_libro)
+        ).fetchone()
+        if existe:
+            return jsonify({"ok": False, "message": "Este libro ya está en tu lista de lectura"}), 409
+        c.execute(
+            "INSERT INTO leyendo (user, id_libro, plan) VALUES (?, ?, ?)",
+            (usuario, id_libro, horas_dia)
+        )
+        nuevo_tiempo = tiempo_libre - horas_dia
+        c.execute(
+            "UPDATE usuarios SET tiempo = ? WHERE usuario = ?",
+            (nuevo_tiempo, usuario)
+        )
+    return jsonify({
+        "ok": True,
+        "message": "Libro agregado al plan de lectura",
+        "horas_dia": horas_dia,
+        "tiempo_libre_restante": nuevo_tiempo
+    }), 201
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
