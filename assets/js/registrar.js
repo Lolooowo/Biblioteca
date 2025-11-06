@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", () => {
   // Toggle mostrar/ocultar confirmar contraseña
   const confirmar = document.getElementById("confirmar");
@@ -117,6 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("http://127.0.0.1:5000/api/register", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
+        credentials: "include",
         body: JSON.stringify(payload),
       });
       console.log(payload)
@@ -126,9 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
         alert(json.message || "Error registrando al usuario.");
         return;
       }
-
+      window.location.href = "./login.html";
       alert("Usuario creado correctamente.");
-      window.location.href = "/home.html";
+      
     } catch (err) {
       console.error(err);
       alert("No se pudo conectar con el servidor");

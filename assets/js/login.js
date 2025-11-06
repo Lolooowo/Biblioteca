@@ -1,3 +1,4 @@
+export const cat = "musica";
 document.addEventListener("DOMContentLoaded", () => {
         const password = document.getElementById("password");
         const btnToggle = document.querySelector(".toggle");
@@ -36,24 +37,22 @@ if(form){
     const resp = await fetch("http://127.0.0.1:5000/api/login", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
+      credentials: "include",
       body: JSON.stringify({
       usuario: usuario.value.trim(),
       password: password.value
       })
     });
     const datos = await resp.json();
-
       if (!resp.ok){
-        formError.textContent = datos.locked 
-        ? "Cuenta bloqueada. Intente más tarde." 
-        : `Usurario o contraseña incorrecta. Intentos restantes: ${datos.attempts_left ?? 0}`;
+        alert(datos.message)
         form.Error = false;
         btnSubmit.removeAttribute("disabled");
         return;
       }
-
        //Si se incia sesion bien, te manda al home
-      window.location.href = "/home.html";
+      //cat = datos.cat;
+      window.location.href = "/paginas/home.html";
     } catch (error){
       error.textContent = "Error en el servidor. Intente más tarde.";
       form.Error = false;

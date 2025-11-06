@@ -282,7 +282,7 @@ def api_me():
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
     cats = Usuario._get_categorias_usuario(user)
-    return jsonify({"ok": True, "usuario": user, "categorias": cats}), 200
+    return jsonify({"ok": True, "usuario": user, "cat": cats}), 200
 
 @app.route("/api/libros", methods=["POST"])
 def api_libros_create():
