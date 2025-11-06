@@ -55,6 +55,17 @@ def por_leer():
                 FOREIGN KEY (id_libro) REFERENCES libros(id_libro)    ON DELETE CASCADE
             );
         """)
+def leido():
+    with conn() as c:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS leido (
+                user     TEXT    NOT NULL,
+                id_libro INTEGER NOT NULL,
+                PRIMARY KEY (user, id_libro),
+                FOREIGN KEY (user)     REFERENCES usuarios(usuario)   ON DELETE CASCADE,
+                FOREIGN KEY (id_libro) REFERENCES libros(id_libro)    ON DELETE CASCADE
+            );
+        """)
 class Usuario:
     @staticmethod
     def init_tablas():
@@ -257,7 +268,42 @@ class Libro:
             return {"ok": True, "message": "Libro agregado", "id_libro": id_libro}, 201
         except sqlite3.IntegrityError:
             return {"ok": False, "message": "El libro ya existe (id duplicado)"}, 409
-
+@app.route("/api/por-leer", methods=["POST"])
+def api_agregar_por_leer():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión"}), 401
+    data = request.get_json() or {}
+    id_libro = data.get("id_libro")
+    if not isinstance(id_libro, int):
+        return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
+    with conn() as c:
+        c.execute("INSERT OR IGNORE INTO por_leer (user, id_libro) VALUES (?, ?)", (user, id_libro))
+    return jsonify({"ok": True}), 201
+@app.route("/api/leido", methods=["POST"])
+def api_agregar_leido():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión"}), 401
+    data = request.get_json() or {}
+    id_libro = data.get("id_libro")
+    if not isinstance(id_libro, int):
+        return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
+    with conn() as c:
+        c.execute("INSERT OR IGNORE INTO leido (user, id_libro) VALUES (?, ?)", (user, id_libro))
+    return jsonify({"ok": True}), 201
+@app.route("/api/leyendo", methods=["POST"])
+def api_agregar_leyendo():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión"}), 401
+    data = request.get_json() or {}
+    id_libro = data.get("id_libro")
+    if not isinstance(id_libro, int):
+        return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
+    with conn() as c:
+        c.execute("INSERT OR IGNORE INTO leyendo (user, id_libro) VALUES (?, ?)", (user, id_libro))
+    return jsonify({"ok": True}), 201
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
@@ -295,6 +341,7 @@ if __name__ == "__main__":
     Libro.init_tablas()
     leyendo()       
     por_leer()
+    leido()
     PORT = int(os.environ.get("PORT", 5000))
     HOST = os.environ.get("HOST", "127.0.0.1")
     print(f"API en http://{HOST}:{PORT}")
