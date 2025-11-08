@@ -273,24 +273,31 @@ def api_agregar_por_leer():
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
+
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
-    book_payload = data.get("book")  
-    if not isinstance(id_libro, int):
-        return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
+    book_payload = data.get("book") or data
+
+    if id_libro is None:
+        return jsonify({"ok": False, "message": "Falta id_libro en el JSON"}), 400
+
     conn_obj = conn()
     try:
         with conn_obj as c:
             if not c.execute("SELECT 1 FROM libros WHERE id_libro = ?", (id_libro,)).fetchone():
-                if not book_payload:
-                    return jsonify({"ok": False, "message": "El libro no existe. Envía 'book' para crearlo o crea el libro primero."}), 400
+                keys = set(book_payload.keys()) if isinstance(book_payload, dict) else set()
+                if keys <= {"id_libro", "id"}:
+                    return jsonify({"ok": False, "message": "El libro no existe. Envía los campos del libro para crearlo o crea el libro primero."}), 400
+
                 body, code = Libro.agregar_con_conn(c, book_payload)
                 if code != 201:
                     return jsonify({"ok": False, "message": "No se pudo crear el libro", "detail": body}), 400
+
             try:
                 c.execute("INSERT INTO por_leer (user, id_libro) VALUES (?, ?)", (user, id_libro))
-            except sqlite3.IntegrityError:
-                return jsonify({"ok": False, "message": "No se pudo agregar a por_leer (integrity error)"}), 500
+            except sqlite3.IntegrityError as e:
+                return jsonify({"ok": False, "message": "No se pudo agregar a por_leer", "detail": str(e)}), 400
+
         return jsonify({"ok": True, "message": "Agregado a por leer", "id_libro": id_libro}), 201
     finally:
         conn_obj.close()
@@ -302,8 +309,6 @@ def api_agregar_leido():
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
     book_payload = data.get("book")  
-    if not isinstance(id_libro, int):
-        return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
     conn_obj = conn()
     try:
         with conn_obj as c:
