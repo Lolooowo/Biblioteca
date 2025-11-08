@@ -275,11 +275,25 @@ def api_agregar_por_leer():
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
+    book_payload = data.get("book")  
     if not isinstance(id_libro, int):
         return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
-    with conn() as c:
-        c.execute("INSERT OR IGNORE INTO por_leer (user, id_libro) VALUES (?, ?)", (user, id_libro))
-    return jsonify({"ok": True}), 201
+    conn_obj = conn()
+    try:
+        with conn_obj as c:
+            if not c.execute("SELECT 1 FROM libros WHERE id_libro = ?", (id_libro,)).fetchone():
+                if not book_payload:
+                    return jsonify({"ok": False, "message": "El libro no existe. Envía 'book' para crearlo o crea el libro primero."}), 400
+                body, code = Libro.agregar_con_conn(c, book_payload)
+                if code != 201:
+                    return jsonify({"ok": False, "message": "No se pudo crear el libro", "detail": body}), 400
+            try:
+                c.execute("INSERT INTO por_leer (user, id_libro) VALUES (?, ?)", (user, id_libro))
+            except sqlite3.IntegrityError:
+                return jsonify({"ok": False, "message": "No se pudo agregar a por_leer (integrity error)"}), 500
+        return jsonify({"ok": True, "message": "Agregado a por leer", "id_libro": id_libro}), 201
+    finally:
+        conn_obj.close()
 @app.route("/api/leido", methods=["POST"])
 def api_agregar_leido():
     user = session.get("usuario")
@@ -287,11 +301,25 @@ def api_agregar_leido():
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
+    book_payload = data.get("book")  
     if not isinstance(id_libro, int):
         return jsonify({"ok": False, "message": "id_libro debe ser entero"}), 400
-    with conn() as c:
-        c.execute("INSERT OR IGNORE INTO leido (user, id_libro) VALUES (?, ?)", (user, id_libro))
-    return jsonify({"ok": True}), 201
+    conn_obj = conn()
+    try:
+        with conn_obj as c:
+            if not c.execute("SELECT 1 FROM libros WHERE id_libro = ?", (id_libro,)).fetchone():
+                if not book_payload:
+                    return jsonify({"ok": False, "message": "El libro no existe. Envía 'book' para crearlo o crea el libro primero."}), 400
+                body, code = Libro.agregar_con_conn(c, book_payload)
+                if code != 201:
+                    return jsonify({"ok": False, "message": "No se pudo crear el libro", "detail": body}), 400
+            try:
+                c.execute("INSERT INTO leido (user, id_libro) VALUES (?, ?)", (user, id_libro))
+            except sqlite3.IntegrityError:
+                return jsonify({"ok": False, "message": "No se pudo agregar a leídos (integrity error)"}), 500
+        return jsonify({"ok": True, "message": "Agregado a leídos", "id_libro": id_libro}), 201
+    finally:
+        conn_obj.close()
 @app.route("/api/leyendo", methods=["POST"])
 def api_agregar_leyendo():
     data = request.get_json() or {}
