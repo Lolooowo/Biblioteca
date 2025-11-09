@@ -168,16 +168,128 @@ function abrirMenuLibro(libro){
   descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
   menu.classList.add("active");
 
-// document.getElementById("porLeer").addEventListener("click", () => {
-// //Aqui colocamos el fetch para enviar el libro al por leer del usuario
+document.getElementById("porLeer").addEventListener("click", async () => {
+// Aqui colocamos el fetch para enviar el libro al por leer del usuario
+  try {
+    const resp = await fetch("http://127.0.0.1:5000/api/por-leer", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({
+        id_libro: libro.id,
+        titulo: libro.titulo,
+        autores: libro.autores,
+        categoria: libro.categoria,
+        portada: libro.portada,
+        descripcion: libro.descripcion,
+        paginas: libro.paginas,
+        editorial: libro.editorial,
+        idioma: libro.idioma,
+        enlace: libro.enlace,
+        })
+    });
+    const datos = await resp.json();
+      if (!resp.ok){
+        alert(datos.message)
+        return;
+      }
+      alert("Libro agregado a tu lista de libros Por Leer.");
+    } catch (error){
+      alert("Error en el servidor. Intente más tarde.");
+    }
+});
+const submenu = document.getElementById("subMenuleyendo");
+const leyendo = document.getElementById("leyendo");
+if(submenu && leyendo){
+  document.getElementById("leyendo").addEventListener("click", async () => {
+  //Aqui colocamos el fetch para enviar el libro al leyendo del usuario
+  submenu.hidden = false;
+  const primeraOpcion = document.querySelector("-submenu-item");
+  primeraOpcion && primeraOpcion.focus();
 
-// });
-// document.getElementById("leyendo").addEventListener("click", () => {
-// //Aqui colocamos el fetch para enviar el libro al leyendo del usuario
-// });
-// document.getElementById("leidos").addEventListener("click", () => {
-// //Aqui colocamos el fetch para enviar el libro al leidos del usuario
-// });
+  const cerrarsubMenu = document.querySelector(".submenu-close");
+  if(cerrarsubMenu){
+    cerrarsubMenu.addEventListener("click", () => submenu.hidden = true);
+  }
+  const opcion1 = document.getElementById("opcion1");
+  const opcion2 = document.getElementById("opcion2");
+  const opcion3 = document.getElementById("opcion3");
+  const pagxhora = 40;
+  const horas = libro.paginas / pagxhora;
+  
+  opcion1.textContent = `Leer 1 hora al día: Libro acabado en: ${Math.ceil(horas)} días`;
+  opcion1.dataset.action = "1";
+  opcion2.textContent = `Leer 2 horas al día: Libro acabado en: ${Math.ceil(horas / 2)} días`;
+  opcion2.dataset.action = "2";
+  opcion3.textContent = `Leer 3 horas al día: Libro acabado en: ${Math.ceil(horas / 3)} días`;
+  opcion3.dataset.action = "3";
+  submenu?.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".submenu-item");
+    if(!btn) return;
+    const horas = btn.dataset.action;
+    if(!horas) return;
+    try {
+    const resp = await fetch("http://127.0.0.1:5000/api/leyendo", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({
+        id_libro: libro.id,
+        titulo: libro.titulo,
+        autores: libro.autores,
+        categoria: libro.categoria,
+        portada: libro.portada,
+        descripcion: libro.descripcion,
+        paginas: libro.paginas,
+        editorial: libro.editorial,
+        idioma: libro.idioma,
+        enlace: libro.enlace,
+        horas_dia: horas
+        })
+    });
+    const datos = await resp.json();
+      if (!resp.ok){
+        alert(datos.message)
+        return;
+      }
+      alert("Libro agregado a tu lista de libros leyendo.");
+    } catch (error){
+      alert("Error en el servidor. Intente más tarde.");
+    }
+  });
+});
+}
+
+document.getElementById("leidos").addEventListener("click", async () => {
+  //Aqui colocamos el fetch para enviar el libro al leidos del usuario
+  try {
+    const resp = await fetch("http://127.0.0.1:5000/api/leido", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({
+        id_libro: libro.id,
+        titulo: libro.titulo,
+        autores: libro.autores,
+        categoria: libro.categoria,
+        portada: libro.portada,
+        descripcion: libro.descripcion,
+        paginas: libro.paginas,
+        editorial: libro.editorial,
+        idioma: libro.idioma,
+        enlace: libro.enlace,
+        })
+    });
+    const datos = await resp.json();
+      if (!resp.ok){
+        alert(datos.message)
+        return;
+      }
+      alert("Libro agregado a tu lista de libros leídos.");
+    } catch (error){
+      alert("Error en el servidor. Intente más tarde.");
+    }
+});
 }
 
 function cerrarMenuLibro(){

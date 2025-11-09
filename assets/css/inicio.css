@@ -420,3 +420,137 @@ main {
 .fantasma{
     color: #ffffff;
 }
+.submenu-overlay[hidden] {
+    display: none !important;
+}
+.submenu-overlay{
+    display: grid;
+    position: fixed;
+    inset: 0;
+     background: rgba(15, 28, 45, 0.28);
+     backdrop-filter: blur(2px);
+     display: grid;
+    place-items: center;
+     z-index: 1001;
+}
+
+.submenu {
+  width: 320px;
+  max-width: 92vw;
+  background: var(--color-card-bg);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transform: translateY(6px);
+  opacity: 0;
+  animation: submenuIn 180ms ease-out forwards;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+@keyframes submenuIn {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.submenu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #f8fbfd, #f2f6fa);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.submenu-header h3 {
+  font-size: 1rem;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.submenu-close {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-light);
+}
+
+.submenu-content {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.submenu-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.submenu-item:hover {
+  background: #f7fbff;
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.submenu-item:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .submenu { width: 92vw; }
+}
+/* Marca en el header */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand-text {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--color-primary);
+}
+
+/* Pastilla del logo */
+.brand-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f7fbff, #eef5fa);
+  border: 1px solid rgba(30, 74, 95, 0.12);
+  box-shadow: 0 4px 12px rgba(30, 74, 95, 0.10);
+  overflow: hidden;
+}
+
+.brand-logo {
+  width: 41px;       /* ajusta si tu logo necesita más/menos espacio */
+  height: 41px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Efecto hover sutil en la marca */
+.brand:hover .brand-badge {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(30, 74, 95, 0.16);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .brand-text { font-size: 1.3rem; }
+  .brand-badge { width: 36px; height: 36px; border-radius: 10px; }
+  .brand-logo { width: 22px; height: 22px; }
+}

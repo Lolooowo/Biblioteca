@@ -9,6 +9,16 @@
 <body>
   <header>
     <div class="header-content">
+      <a href="/paginas/home.html" class="brand">
+        <span class="brand-badge">
+          <img src="../img/logo_biblioteca.png" alt="logo_biblioteca" class="brand-logo"/>
+        </span>
+      </a>
+      <a href="../paginas/home.html" class="brand">
+        <span class="brand-badge">
+          <img src="../img/logo_biblioteca.png" alt="logo biblioteca" class="brand-logo"/>
+        </span>
+      </a>
       <h1 class="logo">Biblioteca Virtual</h1>
       <div class="header-right">
         <div class="search-container">
@@ -89,7 +99,22 @@
         </div>
       </div>
     </div>
+    
   </div>
+  <div id="subMenuleyendo" class="submenu-overlay" hidden>
+    <div class="submenu" role="dialog" aria-modal="true" aria-labelledby="submenuTitle">
+      <div class="submenu-header">
+        <h3 id="submenuTitle">Elige un plan de lectura para agregarlo.</h3>
+        <button class="submenu-close" aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="submenu-content">
+        <button class="submenu-item" data-action="1" id="opcion1"></button>
+        <button class="submenu-item" data-action="2" id="opcion2"></button>
+        <button class="submenu-item" data-action="3" id="opcion3"></button>
+      </div>
+    </div>
+  </div>
+  
   <script type="module" src="/assets/js/programa.js"></script>
 </body>
 </html>
