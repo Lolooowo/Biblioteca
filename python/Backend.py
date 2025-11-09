@@ -280,6 +280,8 @@ def api_agregar_por_leer():
                 if keys <= {"id_libro", "id"}:
                     return jsonify({"ok": False, "message": "El libro no existe. Envía los campos del libro para crearlo o crea el libro primero."}), 400
                 body, code = Libro.agregar(c, book_payload)
+                if code == 409 or 201:
+                    pass
                 if code != 201:
                     return jsonify({"ok": False, "message": body["message"], "detail": body}), 400
             try:
