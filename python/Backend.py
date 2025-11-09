@@ -243,11 +243,12 @@ class Libro:
         editorial = (payload.get("editorial") or "").strip()
         idioma = (payload.get("idioma") or "").strip()
         enlace = (payload.get("enlace") or "").strip()
-        if id_libro is None or not isinstance(id_libro, int):
+        autores = json.dumps(autores, ensure_ascii=False) if isinstance(autores, list) else autores
+        if id_libro is None:
             return {"ok": False, "message": "id_libro debe ser un entero"}, 400
         campos_txt = [titulo, autores, categoria, portada, descripcion, editorial, idioma, enlace]
-        if any(not x for x in campos_txt):
-            return {"ok": False, "message": "Faltan campos de texto obligatorios"}, 400
+        # if any(not x for x in campos_txt):
+        #     return {"ok": False, "message": "Faltan campos de texto obligatorios"}, 400
         if not isinstance(paginas, int) or paginas <= 0:
             return {"ok": False, "message": "paginas debe ser entero > 0"}, 400
         try:
@@ -280,7 +281,7 @@ def api_agregar_por_leer():
                     return jsonify({"ok": False, "message": "El libro no existe. Envía los campos del libro para crearlo o crea el libro primero."}), 400
                 body, code = Libro.agregar(c, book_payload)
                 if code != 201:
-                    return jsonify({"ok": False, "message": "No se pudo crear el libro", "detail": body}), 400
+                    return jsonify({"ok": False, "message": body["message"], "detail": body}), 400
             try:
                 c.execute("INSERT INTO por_leer (user, id_libro) VALUES (?, ?)", (user, id_libro))
             except sqlite3.IntegrityError as e:
