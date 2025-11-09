@@ -29,6 +29,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const libros = await librosLeyendo();
     renderLibros(libros);
   } catch (error) {
-    console.error("Error al cargar los libros de la categoría:", error);
+    console.error("Error al cargar los libros que se están leyendo", error);
   }
 });
+
+function abrirMenuLibro(libro){
+  const menu = document.getElementById("menuLibro");
+  const imagen = document.getElementById("imagenLibro");
+  const titulo = document.getElementById("tituloLibro");
+  const autor = document.getElementById("autorLibro");
+  const descripcion = document.getElementById("descripcionLibro");
+
+  imagen.src = libro.portada;
+  imagen.alt = libro.titulo;
+  titulo.textContent = libro.titulo;
+  autor.textContent =  `Por: ${libro.autores.join(", ")}`;
+  descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
+  menu.classList.add("active");
+}
