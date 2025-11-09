@@ -232,7 +232,7 @@ class Libro:
             )
             """)
     @staticmethod
-    def agregar(payload):
+    def agregar(c,payload):
         id_libro = payload.get("id_libro") or payload.get("id")
         titulo = (payload.get("titulo") or "").strip()
         autores = (payload.get("autores") or "").strip()
@@ -251,7 +251,7 @@ class Libro:
         if not isinstance(paginas, int) or paginas <= 0:
             return {"ok": False, "message": "paginas debe ser entero > 0"}, 400
         try:
-            with conn() as c:
+            with c:
                 c.execute(
                     """INSERT INTO libros
                        (id_libro, titulo, autores, categoria, portada, descripcion, paginas, editorial, idioma, enlace)
