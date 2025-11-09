@@ -244,7 +244,7 @@ if(submenu && leyendo){
         editorial: libro.editorial,
         idioma: libro.idioma,
         enlace: libro.enlace,
-        horas: horas
+        horas_dia: horas
         })
     });
     const datos = await resp.json();
