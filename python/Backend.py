@@ -5,14 +5,12 @@ from datetime import datetime, timedelta
 import json
 import os
 import random
-
 DB_NAME = "biblioteca.db"
 LOCK_MINUTOS = 3
 MAX_INTENTOS = 3
 PAG_POR_HORA = 30
 app = Flask(__name__)
 app.secret_key = "elizabethrosebloodflame"
-
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -26,7 +24,6 @@ CORS(app, resources={
         "supports_credentials": True
     }
 })
-
 def conn():
     c = sqlite3.connect(DB_NAME, check_same_thread=False)
     c.row_factory = sqlite3.Row
@@ -87,7 +84,6 @@ class Usuario:
               locked_until TEXT
             )
             """)
-
     @staticmethod
     def _get_intentos(user):
         with conn() as c:
@@ -235,9 +231,8 @@ class Libro:
                    enlace TEXT NOT NULL
             )
             """)
-
     @staticmethod
-    def agregar(payload):
+    def agregar(c,payload):
         id_libro = payload.get("id_libro") or payload.get("id")
         titulo = (payload.get("titulo") or "").strip()
         autores = (payload.get("autores") or "").strip()
@@ -248,7 +243,6 @@ class Libro:
         editorial = (payload.get("editorial") or "").strip()
         idioma = (payload.get("idioma") or "").strip()
         enlace = (payload.get("enlace") or "").strip()
-
         if id_libro is None or not isinstance(id_libro, int):
             return {"ok": False, "message": "id_libro debe ser un entero"}, 400
         campos_txt = [titulo, autores, categoria, portada, descripcion, editorial, idioma, enlace]
@@ -256,9 +250,8 @@ class Libro:
             return {"ok": False, "message": "Faltan campos de texto obligatorios"}, 400
         if not isinstance(paginas, int) or paginas <= 0:
             return {"ok": False, "message": "paginas debe ser entero > 0"}, 400
-
         try:
-            with conn() as c:
+            with c:
                 c.execute(
                     """INSERT INTO libros
                        (id_libro, titulo, autores, categoria, portada, descripcion, paginas, editorial, idioma, enlace)
@@ -273,14 +266,11 @@ def api_agregar_por_leer():
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
-
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
     book_payload = data.get("book") or data
-
     if id_libro is None:
         return jsonify({"ok": False, "message": "Falta id_libro en el JSON"}), 400
-
     conn_obj = conn()
     try:
         with conn_obj as c:
@@ -288,14 +278,13 @@ def api_agregar_por_leer():
                 keys = set(book_payload.keys()) if isinstance(book_payload, dict) else set()
                 if keys <= {"id_libro", "id"}:
                     return jsonify({"ok": False, "message": "El libro no existe. Envía los campos del libro para crearlo o crea el libro primero."}), 400
-                body, code = Libro.agregar_con_conn(c, book_payload)
+                body, code = Libro.agregar(c, book_payload)
                 if code != 201:
                     return jsonify({"ok": False, "message": "No se pudo crear el libro", "detail": body}), 400
             try:
                 c.execute("INSERT INTO por_leer (user, id_libro) VALUES (?, ?)", (user, id_libro))
             except sqlite3.IntegrityError as e:
                 return jsonify({"ok": False, "message": "No se pudo agregar a por_leer", "detail": str(e)}), 400
-
         return jsonify({"ok": True, "message": "Agregado a por leer", "id_libro": id_libro}), 201
     finally:
         conn_obj.close()
@@ -322,7 +311,7 @@ def api_agregar_leido():
                         "ok": False,
                         "message": "El libro no existe y no se enviaron datos suficientes para crearlo."
                     }), 400
-                body, code = Libro.agregar_con_conn(c, book_payload)
+                body, code = Libro.agregar(c, book_payload)
                 if code != 201:
                     return jsonify({
                         "ok": False,
@@ -363,7 +352,6 @@ def api_agregar_leyendo():
         return jsonify({"ok": False, "message": "horas_dia inválido"}), 400
     if horas_dia <= 0:
         return jsonify({"ok": False, "message": "horas_dia debe ser mayor que 0"}), 400
-
     conn_obj = conn()
     try:
         with conn_obj as c:
@@ -374,7 +362,7 @@ def api_agregar_leyendo():
                         "ok": False,
                         "message": "El libro no existe y no se enviaron datos suficientes para crearlo."
                     }), 400
-                body, code = Libro.agregar_con_conn(c, book_payload)
+                body, code = Libro.agregar(c, book_payload)
                 if code != 201:
                     return jsonify({
                         "ok": False,
@@ -402,10 +390,8 @@ def api_agregar_leyendo():
                     "message": "No se pudo agregar a 'leyendo' (integrity error)",
                     "detail": str(e)
                 }), 400
-
             nuevo_tiempo = tiempo_libre - horas_dia
             c.execute("UPDATE usuarios SET tiempo = ? WHERE usuario = ?", (nuevo_tiempo, user))
-
         return jsonify({
             "ok": True,
             "message": "Libro agregado al plan de lectura",
