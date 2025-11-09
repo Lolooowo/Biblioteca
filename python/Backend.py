@@ -401,6 +401,67 @@ def api_agregar_leyendo():
         }), 201
     finally:
         conn_obj.close()
+@app.route("/api/leidos", methods=["GET"])
+def api_listar_leidos():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+    with conn() as c:
+        filas = c.execute("""
+            SELECT l.id_libro, l.titulo, l.autores, l.categoria, l.portada,
+                   l.descripcion, l.paginas, l.editorial, l.idioma, l.enlace
+            FROM leido li
+            JOIN libros l ON l.id_libro = li.id_libro
+            WHERE li.user = ?
+            ORDER BY l.titulo
+        """, (user,)).fetchall()
+    libros = [dict(f) for f in filas]
+@app.route("/api/leyendo", methods=["GET"])
+def api_listar_leyendo():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+    with conn() as c:
+        filas = c.execute("""
+            SELECT l.id_libro, l.titulo, l.autores, l.categoria, l.portada,
+                   l.descripcion, l.paginas, l.editorial, l.idioma, l.enlace,
+                   ly.plan
+              FROM leyendo ly
+              JOIN libros l ON l.id_libro = ly.id_libro
+             WHERE ly.user = ?
+             ORDER BY l.titulo
+        """, (user,)).fetchall()
+    libros = []
+    for f in filas:
+        d = dict(f)
+        if "plan" in d:
+            try:
+                d["plan"] = float(d["plan"])
+            except Exception:
+                pass
+        libros.append(d)
+
+    return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
+@app.route("/api/por-leer", methods=["GET"])
+def api_listar_por_leer():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+
+    with conn() as c:
+        filas = c.execute("""
+            SELECT l.id_libro, l.titulo, l.autores, l.categoria, l.portada,
+                   l.descripcion, l.paginas, l.editorial, l.idioma, l.enlace
+              FROM por_leer pl
+              JOIN libros l ON l.id_libro = pl.id_libro
+             WHERE pl.user = ?
+             ORDER BY l.titulo
+        """, (user,)).fetchall()
+
+    libros = [dict(f) for f in filas]
+
+    return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
+    return jsonify({"ok": True, "libros": libros}), 200
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
