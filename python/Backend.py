@@ -235,7 +235,7 @@ class Libro:
     def agregar(c,payload):
         id_libro = payload.get("id_libro") or payload.get("id")
         titulo = (payload.get("titulo") or "").strip()
-        autores = (payload.get("autores") or "").strip()
+        autores = (payload.get("autores") or "")
         categoria = (payload.get("categoria") or "").strip()
         portada = (payload.get("portada") or "").strip()
         descripcion = (payload.get("descripcion") or "").strip()
