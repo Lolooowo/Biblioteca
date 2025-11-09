@@ -506,3 +506,51 @@ main {
 @media (max-width: 480px) {
   .submenu { width: 92vw; }
 }
+/* Marca en el header */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand-text {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--color-primary);
+}
+
+/* Pastilla del logo */
+.brand-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f7fbff, #eef5fa);
+  border: 1px solid rgba(30, 74, 95, 0.12);
+  box-shadow: 0 4px 12px rgba(30, 74, 95, 0.10);
+  overflow: hidden;
+}
+
+.brand-logo {
+  width: 41px;       /* ajusta si tu logo necesita más/menos espacio */
+  height: 41px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Efecto hover sutil en la marca */
+.brand:hover .brand-badge {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(30, 74, 95, 0.16);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .brand-text { font-size: 1.3rem; }
+  .brand-badge { width: 36px; height: 36px; border-radius: 10px; }
+  .brand-logo { width: 22px; height: 22px; }
+}
