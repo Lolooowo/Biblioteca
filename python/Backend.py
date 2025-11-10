@@ -9,6 +9,7 @@ DB_NAME = "biblioteca.db"
 LOCK_MINUTOS = 3
 MAX_INTENTOS = 3
 PAG_POR_HORA = 30
+usuario_permanente = ""
 app = Flask(__name__)
 app.secret_key = "elizabethrosebloodflame"
 CORS(app, resources={
@@ -187,13 +188,14 @@ class Usuario:
                 cats = []
             cat_random = Usuario._pick_random_categoria(cats)
             session["usuario"] = user
+            usuario_permanente = user
             return {
                 "ok": True,
                 "message": "Bienvenido",
                 "categoria_sugerida": cat_random,
                 "usuario": user
             }, 200
-
+            
         fails = (fails or 0) + 1
         if fails >= MAX_INTENTOS:
             bloqueado_hasta = (now + timedelta(minutes=LOCK_MINUTES)).isoformat()
@@ -264,7 +266,8 @@ class Libro:
             return {"ok": False, "message": "El libro ya existe (id duplicado)"}, 409
 @app.route("/api/por-leer", methods=["POST"])
 def api_agregar_por_leer():
-    user = session.get("usuario")
+    #user = session.get("usuario")
+    user = usuario_permanente
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
     data = request.get_json() or {}
@@ -280,7 +283,7 @@ def api_agregar_por_leer():
                 if keys <= {"id_libro", "id"}:
                     return jsonify({"ok": False, "message": "El libro no existe. Envía los campos del libro para crearlo o crea el libro primero."}), 400
                 body, code = Libro.agregar(c, book_payload)
-                if (code == 409 or code == 201):
+                if code == 409 or code == 201:
                     pass
                 else:
                     if code != 201:
@@ -420,7 +423,7 @@ def api_listar_leidos():
             ORDER BY l.titulo
         """, (user,)).fetchall()
     libros = [dict(f) for f in filas]
-@app.route("/api/leyendo", methods=["GET"])
+@app.route("/api/leyendos", methods=["GET"])
 def api_listar_leyendo():
     user = session.get("usuario")
     if not user:
@@ -446,7 +449,7 @@ def api_listar_leyendo():
         libros.append(d)
 
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
-@app.route("/api/por-leer", methods=["GET"])
+@app.route("/api/por-leers", methods=["GET"])
 def api_listar_por_leer():
     user = session.get("usuario")
     if not user:
