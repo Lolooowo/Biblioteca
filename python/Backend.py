@@ -489,7 +489,7 @@ def api_listar_por_leer():
         d["autores"] = parse_autores(d.get("autores"))
         libros.append(d)
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
-@app.route("/api/mover_a_leidos", methods=["POST"])
+@app.route("/api/mover_a_leidos", methods=["POST","OPTIONS"])
 def api_mover_a_leidos():
     user = session.get("usuario")
     if not user:
