@@ -1,10 +1,18 @@
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 async function librosLeyendo() {
-    const res = await fetch("http://127.0.0.1:5000/api/leyendo");
-    if(!res.ok) throw new Error("Error al obtener los libros");
-    const libros = await res.json();
-    return libros;
+    const resp = await fetch("http://127.0.0.1:5000/api/leyendos", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+    const datos = await resp.json();
+    if (!resp.ok) {
+        throw new Error(datos.message || "Error al obtener los libros que se están leyendo");
+    }
+    return datos.libros;
 }
 function renderLibros(libros){
   const librosGrind = document.getElementById("librosGrid");
@@ -46,4 +54,11 @@ function abrirMenuLibro(libro){
   autor.textContent =  `Por: ${libro.autores.join(", ")}`;
   descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
   menu.classList.add("active");
+};
+function cerrarMenuLibro(){
+  const menu = document.getElementById("menuLibro");
+  menu.classList.remove("active");
 }
+const BtnCerrarMenu = document.getElementById("cerrarMenu");
+
+BtnCerrarMenu.addEventListener("click", cerrarMenuLibro);
