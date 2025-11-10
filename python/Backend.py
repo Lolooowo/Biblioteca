@@ -627,7 +627,7 @@ def api_categoria_usuario_aleatoria():
             if not cats:
                 return jsonify({"ok": False, "message": "El usuario no tiene categorías útiles"}, 404)
             chosen = random.choice(cats)
-        return jsonify({"ok": True, "categoria": chosen, "count": len(cats)}), 200
+        return jsonify({"ok": True, "cat": chosen, "count": len(cats)}), 200
     except Exception as e:
         return jsonify({"ok": False, "message": f"Error interno: {e}"}), 500
 @app.route("/api/register", methods=["POST"])
