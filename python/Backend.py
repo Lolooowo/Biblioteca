@@ -459,8 +459,12 @@ def api_listar_leidos():
             WHERE li.user = ?
             ORDER BY l.titulo
         """, (user,)).fetchall()
+    libros = []
+    for f in filas:
+        d = dict(f)
         d["autores"] = parse_autores(d.get("autores"))
-    libros = [dict(f) for f in filas]
+        libros.append(d)
+    return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
 @app.route("/api/leyendos", methods=["GET"])
 def api_listar_leyendo():
     user = session.get("usuario")
@@ -535,6 +539,32 @@ def api_mover_a_leidos():
              WHERE user = ? AND id_libro = ?
         """, (user, id_libro))
     return jsonify({"ok": True, "message": "Libro movido a 'leídos' correctamente"}), 200
+@app.route("/api/leidos/delete", methods=["POST"])
+def api_delete_leido():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+    data = request.get_json() or {}
+    id_libro = data.get("id_libro")
+    if id_libro is None:
+        return jsonify({"ok": False, "message": "Falta id_libro en el JSON"}), 400
+    id_libro = str(id_libro).strip()
+    conn_obj = conn()
+    try:
+        with conn_obj as c:
+            deleted = False
+            for tbl in ("leido", "leidos"):
+                try:
+                    if _delete_from_table(c, tbl, user, id_libro):
+                        deleted = True
+                        break
+                except sqlite3.OperationalError:
+                    continue
+            if not deleted:
+                return jsonify({"ok": False, "message": "Entrada no encontrada en leídos"}), 404
+        return jsonify({"ok": True, "message": "Libro eliminado de leídos", "id_libro": id_libro}), 200
+    finally:
+        conn_obj.close()
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
