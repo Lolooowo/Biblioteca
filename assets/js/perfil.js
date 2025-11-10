@@ -1,5 +1,6 @@
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+let libroSeleccionado = null;
 async function librosLeyendo() {
     const resp = await fetch("http://127.0.0.1:5000/api/leyendos", {
       method: "GET",
