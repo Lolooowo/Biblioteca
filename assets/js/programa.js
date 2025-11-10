@@ -6,22 +6,36 @@ const API_KEY = "AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o";
 const BASE = "https://www.googleapis.com/books/v1/volumes";
 
 let libroSeleccionado = null;
+async function init() {
+  try {
+    const cat = await categoriaRandom();       // e.g. "Biografía"
+    const categoriaSelec = String(cat || "").toLowerCase().trim();
+    console.log("Categoría aleatoria:", categoriaSelec);
 
-async function categoriaRandom() {
-    const resp = await fetch("http://127.0.0.1:5000/api/categoria/aleatoria", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-        },
-        credentials: "include"
-    });
-    const datos = await resp.json();
-    if (!resp.ok) {
-        throw new Error(datos.message || "Error al obtener una categoria del usuario");
+    if (!categoriaSelec) {
+      // fallback a una categoría por defecto
+      return cargarPorDefecto();
     }
-    return datos.cat;
+
+    const libros = await buscarLibrosCategoria(categoriaSelec);
+    renderLibros(libros);
+    // si tienes título:
+    const tituloMain = document.getElementById("tituloMain");
+    if (tituloMain) tituloMain.textContent = `Recomendaciones en: "${cat}"`;
+  } catch (e) {
+    console.error("Fallo obteniendo categoría aleatoria:", e);
+    await cargarPorDefecto();
   }
-const cat = categoriaRandom();
+}
+
+async function cargarPorDefecto() {
+  // Elige una categoría por defecto
+  const fallback = "ficción";
+  const libros = await buscarLibrosCategoria(fallback);
+  renderLibros(libros);
+}
+
+
 async function buscarLibrosCategoria(cat) {
   const urlCategorias = `https://www.googleapis.com/books/v1/volumes?q=subjects:${cat}$&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=${API_KEY}`;
   const busqueda = await fetch(urlCategorias);
@@ -138,17 +152,12 @@ async function showRecomendaciones() {
   resultados?.classList.add("hidden");
   if (tituloMain) tituloMain.textContent = "Recomendaciones para ti";
 
-  const libros = await buscarLibrosCategoria(cat);
+  const libros = await buscarLibrosCategoria(categoriaSelec);
   renderLibros(libros);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const libros = await buscarLibrosCategoria(cat);
-    renderLibros(libros);
-  } catch (error) {
-    console.error("Error al cargar los libros de la categoría:", error);
-  }
+  await init();
 
   // Búsqueda
   const buscarInput = document.getElementById("buscador");
@@ -341,4 +350,15 @@ function abrirMenuLibro(libro, libros) {
 function cerrarMenuLibro(libros) {
   const menu = document.getElementById("menuLibro");
   menu?.classList.remove("active");
+}
+async function categoriaRandom() {
+  const resp = await fetch("http://127.0.0.1:5000/api/categoria/aleatoria", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include"
+  });
+  const datos = await resp.json();
+  if (!resp.ok) throw new Error(datos.message || "Error al obtener una categoría del usuario");
+  console.log("Respuesta /categoria/aleatoria:", datos); // verifica shape
+  return datos.cat; // ajusta si la clave es distinta, p.ej. datos.categoria
 }
