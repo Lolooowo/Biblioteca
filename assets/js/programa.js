@@ -1,8 +1,6 @@
 //import { cat } from "./login";
-//import { cat } from "./login";
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
-
 
 const cat = "musica";
 const API_KEY = "AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o";
@@ -14,12 +12,10 @@ async function buscarLibrosCategoria(cat) {
   const urlCategorias = `https://www.googleapis.com/books/v1/volumes?q=subjects:${cat}$&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=${API_KEY}`;
   const busqueda = await fetch(urlCategorias);
   if (!busqueda.ok) {
-  if (!busqueda.ok) {
     throw new Error(`ERROR en la llamada a la API: ${busqueda.status}`);
   }
   const datos = await busqueda.json();
   const items = datos.items || [];
-  if (items.length === 0) {
   if (items.length === 0) {
     throw new Error("No se encontraron libros para la categoría seleccionada.");
   }
@@ -44,26 +40,6 @@ async function buscarLibrosCategoria(cat) {
     });
   return soloPortada;
 }
-  const soloPortada = items
-    .filter((item) => mejorPortada(item.volumeInfo?.imageLinks))
-    .map((item) => {
-      const info = item.volumeInfo || {};
-      return {
-        id: item.id,
-        titulo: info.title,
-        autores: info.authors || ["Desconocido"],
-        categoria: info.categories ? info.categories[0] : "Sin categoría",
-        portada: mejorPortada(info.imageLinks),
-        descripcion: info.description || "Sin descripción",
-        paginas: info.pageCount || "Desconocido",
-        editorial: info.publisher || "Desconocido",
-        fecha: info.publishedDate || "Desconocido",
-        idioma: info.language || "Desconocido",
-        enlace: info.infoLink || "",
-      };
-    });
-  return soloPortada;
-}
 
 async function buscarLibros(termino) {
   const urlBusqueda = `https://www.googleapis.com/books/v1/volumes?q=${termino}&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=${API_KEY}`;
@@ -76,38 +52,7 @@ async function buscarLibros(termino) {
   if (items.length === 0) {
     throw new Error("No se encontraron libros para la búsqueda realizada.");
   }
-async function buscarLibros(termino) {
-  const urlBusqueda = `https://www.googleapis.com/books/v1/volumes?q=${termino}&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=${API_KEY}`;
-  const busquedaLibros = await fetch(urlBusqueda);
-  if (!busquedaLibros.ok) {
-    throw new Error(`ERROR en la llamada a la API: ${busquedaLibros.status}`);
-  }
-  const datos = await busquedaLibros.json();
-  const items = datos.items || [];
-  if (items.length === 0) {
-    throw new Error("No se encontraron libros para la búsqueda realizada.");
-  }
 
-  const soloPortada = items
-    .filter((item) => mejorPortada(item.volumeInfo?.imageLinks))
-    .map((item) => {
-      const info = item.volumeInfo || {};
-      return {
-        id: item.id,
-        titulo: info.title,
-        autores: info.authors || ["Desconocido"],
-        categoria: info.categories ? info.categories[0] : "Sin categoría",
-        portada: mejorPortada(info.imageLinks),
-        descripcion: info.description || "Sin descripción",
-        paginas: info.pageCount || "Desconocido",
-        editorial: info.publisher || "Desconocido",
-        fecha: info.publishedDate || "Desconocido",
-        idioma: info.language || "Desconocido",
-        enlace: info.infoLink || "",
-      };
-    });
-  return soloPortada;
-}
   const soloPortada = items
     .filter((item) => mejorPortada(item.volumeInfo?.imageLinks))
     .map((item) => {
@@ -166,12 +111,9 @@ function renderLibros(libros) {
       <div class="book-info">
         <h3 class="book-title">${libro.titulo}</h3>
         <p class="book-author">${libro.autores.join(", ")}</p>
-        <h3 class="book-title">${libro.titulo}</h3>
-        <p class="book-author">${libro.autores.join(", ")}</p>
       </div>
     `;
     libroCard.addEventListener("click", () => abrirMenuLibro(libro, libros));
-    librosGrid.appendChild(libroCard);
     librosGrid.appendChild(libroCard);
   });
 }
@@ -187,7 +129,6 @@ async function showRecomendaciones() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Carga inicial
   try {
     const libros = await buscarLibrosCategoria(cat);
     renderLibros(libros);
@@ -195,12 +136,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error al cargar los libros de la categoría:", error);
   }
 
-  // Búsqueda
-  const buscarInput = document.getElementById("buscador");
-  const resultados = document.getElementById("resutados");
-  const termino = document.getElementById("aBuscar");
-  const tituloMain = document.getElementById("tituloMain");
-  const regresarInicio = document.getElementById("regresarInicio");
   // Búsqueda
   const buscarInput = document.getElementById("buscador");
   const resultados = document.getElementById("resutados");
@@ -227,7 +162,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     resultados?.classList.add("hidden");
     if (buscarInput) buscarInput.value = "";
   });
-
 
   const btnPorLeer = document.getElementById("porLeer");
   const btnLeidos = document.getElementById("leidos");
@@ -263,13 +197,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       alert("Libro agregado a tu lista de Por leer.");
     } catch (error) {
-      alert("Libro agregado a tu lista de Por leer.");
-    } catch (error) {
       alert("Error en el servidor. Intente más tarde.");
     }
   });
 
-  // LEYENDO
+  // LEYENDO:
   btnLeyendo?.addEventListener("click", () => {
     if (!libroSeleccionado || !submenu) return;
     submenu.hidden = false;
@@ -294,19 +226,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Cerrar submenú
   cerrarSub?.addEventListener("click", () => {
     if (submenu) submenu.hidden = true;
   });
 
-  
   submenu?.addEventListener("click", async (e) => {
     const btn = e.target.closest(".submenu-item");
     if (!btn || !libroSeleccionado) return;
-    if (!btn || !libroSeleccionado) return;
     const horas = btn.dataset.action;
-    if (!horas) return;
-
     if (!horas) return;
 
     try {
@@ -331,32 +258,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const datos = await resp.json();
       if (!resp.ok) {
         alert(datos.message || "Error");
-      const resp = await fetch("http://127.0.0.1:5000/api/leyendo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          id_libro: libroSeleccionado.id,
-          titulo: libroSeleccionado.titulo,
-          autores: libroSeleccionado.autores,
-          categoria: libroSeleccionado.categoria,
-          portada: libroSeleccionado.portada,
-          descripcion: libroSeleccionado.descripcion,
-          paginas: libroSeleccionado.paginas,
-          editorial: libroSeleccionado.editorial,
-          idioma: libroSeleccionado.idioma,
-          enlace: libroSeleccionado.enlace,
-          horas_dia: horas,
-        }),
-      });
-      const datos = await resp.json();
-      if (!resp.ok) {
-        alert(datos.message || "Error");
         return;
       }
-      alert("Libro agregado a tu lista de Leyendo.");
-      submenu.hidden = true;
-    } catch (error) {
       alert("Libro agregado a tu lista de Leyendo.");
       submenu.hidden = true;
     } catch (error) {
@@ -388,34 +291,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const datos = await resp.json();
       if (!resp.ok) {
         alert(datos.message || "Error");
-  // LEÍDOS
-  btnLeidos?.addEventListener("click", async () => {
-    if (!libroSeleccionado) return;
-    try {
-      const resp = await fetch("http://127.0.0.1:5000/api/leido", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          id_libro: libroSeleccionado.id,
-          titulo: libroSeleccionado.titulo,
-          autores: libroSeleccionado.autores,
-          categoria: libroSeleccionado.categoria,
-          portada: libroSeleccionado.portada,
-          descripcion: libroSeleccionado.descripcion,
-          paginas: libroSeleccionado.paginas,
-          editorial: libroSeleccionado.editorial,
-          idioma: libroSeleccionado.idioma,
-          enlace: libroSeleccionado.enlace,
-        }),
-      });
-      const datos = await resp.json();
-      if (!resp.ok) {
-        alert(datos.message || "Error");
         return;
       }
-      alert("Libro agregado a tu lista de Leídos.");
-    } catch (error) {
       alert("Libro agregado a tu lista de Leídos.");
     } catch (error) {
       alert("Error en el servidor. Intente más tarde.");
@@ -450,5 +327,4 @@ function abrirMenuLibro(libro, libros) {
 function cerrarMenuLibro(libros) {
   const menu = document.getElementById("menuLibro");
   menu?.classList.remove("active");
-  libroSeleccionado = null
 }
