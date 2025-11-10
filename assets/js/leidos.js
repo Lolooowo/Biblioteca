@@ -1,5 +1,6 @@
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+let libroSeleccionado = null;
 async function librosLeidos() {
     const resp = await fetch("http://127.0.0.1:5000/api/leidos", {
       method: "GET",
@@ -54,6 +55,7 @@ function abrirMenuLibro(libro){
   const titulo = document.getElementById("tituloLibro");
   const autor = document.getElementById("autorLibro");
   const descripcion = document.getElementById("descripcionLibro");
+  const eliminar = document.getElementById("leidosEliminar");
 
   imagen.src = libro.portada;
   imagen.alt = libro.titulo;
@@ -61,7 +63,27 @@ function abrirMenuLibro(libro){
   autor.textContent =  `Por: ${libro.autores.join(", ")}`;
   descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
   menu.classList.add("active");
-};
+
+  eliminar.addEventListener("click", async () => {
+    try{
+        const resp = await fetch("http://127.0.0.1:5000/api/leidos/delete",{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({id_libro: libro.id_libro})
+        });
+        const datos = await resp.json();
+        if (!resp.ok) {
+            throw new Error(datos.message || "Error al eliminar el libro de Leídos");
+        }
+        alert("Libro eliminado de Leídos correctamente.");
+    } catch (error) {
+        console.error("Error al eliminar el libro de Leídos", error);
+        
+  }
+
+});
+}
 function cerrarMenuLibro(){
   const menu = document.getElementById("menuLibro");
   menu.classList.remove("active");

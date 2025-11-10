@@ -47,20 +47,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-function abrirMenuLibro(libro){
-  const menu = document.getElementById("menuLibro");
-  const imagen = document.getElementById("imagenLibro");
-  const titulo = document.getElementById("tituloLibro");
-  const autor = document.getElementById("autorLibro");
-  const descripcion = document.getElementById("descripcionLibro");
+// function abrirMenuLibro(libro){
+//   libroSeleccionado = libro;
+//   const menu = document.getElementById("menuLibro");
+//   const imagen = document.getElementById("imagenLibro");
+//   const titulo = document.getElementById("tituloLibro");
+//   const autor = document.getElementById("autorLibro");
+//   const descripcion = document.getElementById("descripcionLibro");
 
-  imagen.src = libro.portada;
-  imagen.alt = libro.titulo;
-  titulo.textContent = libro.titulo;
-  autor.textContent =  `Por: ${libro.autores.join(", ")}`;
-  descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
-  menu.classList.add("active");
-};
+//   imagen.src = libro.portada;
+//   imagen.alt = libro.titulo;
+//   titulo.textContent = libro.titulo;
+//   autor.textContent =  `Por: ${libro.autores.join(", ")}`;
+//   descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
+//   menu.classList.add("active");
+// };
 function cerrarMenuLibro(){
   const menu = document.getElementById("menuLibro");
   menu.classList.remove("active");
@@ -91,7 +92,7 @@ function cerrarMenuLibro(){
 );
 
   // Además, asegúrate de asignar libroSeleccionado cuando abres el modal
-  window.abrirMenuLibro = function(libro) {
+  window.abrirMenuLibro = function (libro) {
     libroSeleccionado = libro; // <-- CLAVE
     const menu = document.getElementById('menuLibro');
     const imagen = document.getElementById('imagenLibro');
