@@ -3,9 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="../assets/css/inicio.css">
+    <title>Libros Por Leer</title>
 </head>
 <body>
-    
+    <header>
+    <div class="header-content">
+      <a href="../paginas/home.html" class="brand">
+        <span class="brand-badge">
+          <img src="../img/logo_biblioteca.png" alt="logo biblioteca" class="brand-logo"/>
+        </span>
+      </a>
+      <h1 class="logo">Biblioteca Virtual</h1>
+      <div class="header-right">
+        <div class="search-container">
+          <!-- <span class="search-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </span> -->
+          <!-- <input type="text" class="search-box" placeholder="Buscar libros..." id="buscador"/> -->
+        </div>
+        <a href="/paginas/perfil.html" class="profile-link">
+          <span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </span>
+          <span>Mi perfil</span>
+        </a>
+        <a href="/paginas/misLibros.html" class="profile-link">
+          <span class="book-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+          </span>
+        </a>
+        <a href="/paginas/../paginas/recomen.html" class="profile-link" aria-label="Por leer">
+            <span class="book-icon">
+            <!-- Reloj (ícono solo) -->
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="7"></circle>
+                <path d="M12 8v4"></path>
+                <path d="M12 12l2.2 2.2"></path>
+                <path d="M12 5v-2"></path>
+                <path d="M19 12h2"></path>
+                <path d="M12 21v2"></path>
+                <path d="M3 12H1"></path>
+                  </svg>
+              </span>
+          </a>
+      </div>
+    </div>
+  </header>
+  <main>
+    <h2 class="section-title" id="tituloMain">Libros por Leer:</h2>
+    <div class="books-grio" id="librosGrid"></div>
+  </main>
+  <div class="modal-overlay" id="menuLibro">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Detalles del Libro</h2>
+        <button class="close-modal" id="cerrarMenu">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="book-details">
+          <img src="" alt="" class="book-details-imagen" id="imagenLibro">
+          <div class="book-details-info">
+            <h3 class="book-details-title" id="tituloLibro"></h3>
+            <p class="book-details-author" id="autorLibro"></p>
+          </div>
+        </div>
+        <p class="book-description" id="descripcionLibro">
+          aqui va la descripcion del libro en el java.
+        </p>
+        <div class="modal-actions">
+          <button class="action-button primary" id="eliminarLeyendo">
+            Eliminar de "Leyendo"
+          </button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="../assets/js/porleer.js"></script>
 </body>
 </html>

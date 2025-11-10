@@ -1,7 +1,7 @@
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
-async function librosLeyendo() {
-    const resp = await fetch("http://127.0.0.1:5000/api/leyendos", {
+async function librosLeidos() {
+    const resp = await fetch("http://127.0.0.1:5000/api/leidos", {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -17,7 +17,7 @@ async function librosLeyendo() {
 function renderLibros(libros){
     if(libros.length === 0){
         const librosGrind = document.getElementById("librosGrid");
-        librosGrind.innerHTML = "<p class='no-books-message'>No estás leyendo ningún libro actualmente.</p>";
+        librosGrind.innerHTML = "<p class='no-books-message'>No hay libros leidos.</p>";
         return;
     }
   const librosGrind = document.getElementById("librosGrid");
@@ -39,7 +39,7 @@ function renderLibros(libros){
 }
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const libros = await librosLeyendo();
+    const libros = await librosLeidos();
     renderLibros(libros);
   } catch (error) {
     console.error("Error al cargar los libros que se están leyendo", error);
