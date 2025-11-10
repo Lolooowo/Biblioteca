@@ -253,15 +253,6 @@ class Libro:
         except sqlite3.IntegrityError:
             return {"ok": False, "message": "El libro ya existe (id duplicado)"}, 409
 def parse_autores(raw):
-    """
-    Normaliza el campo 'autores' y devuelve siempre una lista de strings.
-    Acepta:
-      - lista Python o JSON literal -> ['A','B']
-      - string JSON -> '["A","B"]'
-      - string python-list -> "['A','B']"
-      - texto separado por comas/;| -> "A, B"
-      - None o "" -> []
-    """
     if raw is None:
         return []
     if isinstance(raw, list):
@@ -539,22 +530,32 @@ def api_delete_leido():
     if id_libro is None:
         return jsonify({"ok": False, "message": "Falta id_libro en el JSON"}), 400
     id_libro = str(id_libro).strip()
-    conn_obj = conn()
     try:
-        with conn_obj as c:
-            deleted = False
-            for tbl in ("leido", "leidos"):
-                try:
-                    if _delete_from_table(c, tbl, user, id_libro):
-                        deleted = True
-                        break
-                except sqlite3.OperationalError:
-                    continue
-            if not deleted:
-                return jsonify({"ok": False, "message": "Entrada no encontrada en leídos"}), 404
-        return jsonify({"ok": True, "message": "Libro eliminado de leídos", "id_libro": id_libro}), 200
-    finally:
-        conn_obj.close()
+        with conn() as c:
+            row = c.execute(
+                "SELECT * FROM leidos WHERE id_libro = ? AND usuario = ?",
+                (id_libro, user)
+            ).fetchone()
+            if not row:
+                return jsonify({
+                    "ok": False,
+                    "message": "El libro no se encuentra en la tabla de leídos"
+                }), 404
+            c.execute(
+                "DELETE FROM leidos WHERE id_libro = ? AND usuario = ?",
+                (id_libro, user)
+            )
+            c.commit()
+        return jsonify({
+            "ok": True,
+            "message": "Libro eliminado correctamente de la tabla leídos",
+            "id_libro": id_libro
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "message": f"Error al eliminar el libro: {e}"
+        }), 500
 @app.route("/api/mover_por_leer_a_leyendo", methods=["POST"])
 def api_mover_por_leer_a_leyendo():
     user = session.get("usuario")
