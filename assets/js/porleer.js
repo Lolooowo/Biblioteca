@@ -1,5 +1,6 @@
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+let libroSeleccionado = null;
 async function librosporLeer() {
     const resp = await fetch("http://127.0.0.1:5000/api/por-leers", {
       method: "GET",
@@ -46,24 +47,69 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-function abrirMenuLibro(libro){
-  const menu = document.getElementById("menuLibro");
-  const imagen = document.getElementById("imagenLibro");
-  const titulo = document.getElementById("tituloLibro");
-  const autor = document.getElementById("autorLibro");
-  const descripcion = document.getElementById("descripcionLibro");
+// function abrirMenuLibro(libro){
+//   libroSeleccionado = libro;
+//   const menu = document.getElementById("menuLibro");
+//   const imagen = document.getElementById("imagenLibro");
+//   const titulo = document.getElementById("tituloLibro");
+//   const autor = document.getElementById("autorLibro");
+//   const descripcion = document.getElementById("descripcionLibro");
 
-  imagen.src = libro.portada;
-  imagen.alt = libro.titulo;
-  titulo.textContent = libro.titulo;
-  autor.textContent =  `Por: ${libro.autores.join(", ")}`;
-  descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
-  menu.classList.add("active");
-};
+//   imagen.src = libro.portada;
+//   imagen.alt = libro.titulo;
+//   titulo.textContent = libro.titulo;
+//   autor.textContent =  `Por: ${libro.autores.join(", ")}`;
+//   descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
+//   menu.classList.add("active");
+// };
 function cerrarMenuLibro(){
   const menu = document.getElementById("menuLibro");
   menu.classList.remove("active");
 }
-const BtnCerrarMenu = document.getElementById("cerrarMenu");
+  const eliminarPorLeer = document.getElementById("eliminarPorLeer");
+  eliminarPorLeer?.addEventListener("click", async () => {
+    if (libroSeleccionado) return;
+    try{
+        const resp = await fetch("http://127.0.0.1:5000/api/por_leer/delete",{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({id_libro: libroSeleccionado.id_libro})
+        });
+        const datos = await resp.json();
+        if (!resp.ok) {
+            throw new Error(datos.message || "Error al eliminar el libro de Por leer");
+        }
+        alert("Libro eliminado de Por leer correctamente.");
+        cerrarMenuLibro();
+        const libros = await librosporLeer();
+        renderLibros(libros);
+    } catch (error) {
+        console.error("Error al eliminar el libro de Por leer", error);
+    }
 
-BtnCerrarMenu.addEventListener("click", cerrarMenuLibro);
+        }
+);
+
+  // Además, asegúrate de asignar libroSeleccionado cuando abres el modal
+  window.abrirMenuLibro = function (libro) {
+    libroSeleccionado = libro; // <-- CLAVE
+    const menu = document.getElementById('menuLibro');
+    const imagen = document.getElementById('imagenLibro');
+    const titulo = document.getElementById('tituloLibro');
+    const autor = document.getElementById('autorLibro');
+    const descripcion = document.getElementById('descripcionLibro');
+
+    imagen.src = libro.portada;
+    imagen.alt = libro.titulo;
+    titulo.textContent = libro.titulo;
+    autor.textContent = `Por: ${libro.autores.join(', ')}`;
+    descripcion.textContent = libro.descripcion || 'Sin descripción disponible.';
+    menu.classList.add('active');
+  };
+
+  const BtnCerrarMenu = document.getElementById('cerrarMenu');
+  BtnCerrarMenu?.addEventListener('click', () => {
+    document.getElementById('menuLibro')?.classList.remove('active');
+  });
+
