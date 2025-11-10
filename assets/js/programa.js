@@ -190,7 +190,7 @@ document.getElementById("porLeer").addEventListener("click", async () => {
     });
     const datos = await resp.json();
       if (!resp.ok){
-        alert(datos.message)
+        alert(datos.detail)
         return;
       }
       alert("Libro agregado a tu lista de libros Por Leer.");
