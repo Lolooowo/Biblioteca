@@ -96,7 +96,6 @@ class Usuario:
             if not row:
                 return 0, None
             return row["fails"], row["locked_until"]
-
     @staticmethod
     def _set_intentos(user, fails, locked_until):
         with conn() as c:
@@ -105,7 +104,6 @@ class Usuario:
                 VALUES(?,?,?)
                 ON CONFLICT(user) DO UPDATE SET fails=excluded.fails, locked_until=excluded.locked_until
             """, (user, fails, locked_until))
-
     @staticmethod
     def _get_categorias_usuario(usuario: str):
         with conn() as c:
@@ -119,13 +117,11 @@ class Usuario:
             return json.loads(fila["categorias"])
         except Exception:
             return []
-
     @staticmethod
     def _pick_random_categoria(cats):
         if not cats:
             return None
         return random.choice(cats)
-
     @staticmethod
     def registrar(usuario, password, tiempo_libre, categorias_list):
         if not usuario or not password:
@@ -134,7 +130,6 @@ class Usuario:
             return {"ok": False, "message": "Tiempo libre debe ser un entero"}, 400
         if not isinstance(categorias_list, list) or not all(isinstance(x, str) for x in categorias_list):
             return {"ok": False, "message": "categorias debe ser un array de strings"}, 400
-
         categorias_json = json.dumps(categorias_list, ensure_ascii=False)
         try:
             with conn() as c:
@@ -153,15 +148,12 @@ class Usuario:
             }, 201
         except sqlite3.IntegrityError:
             return {"ok": False, "message": "El usuario ya existe"}, 409
-
     @staticmethod
     def login(user, password):
         if not user or not password:
             return {"ok": False, "message": "Credenciales incompletas"}, 400
-
         fails, locked_until = Usuario._get_intentos(user)
         now = datetime.utcnow()
-
         if locked_until:
             try:
                 locked_dt = datetime.fromisoformat(locked_until)
@@ -174,13 +166,11 @@ class Usuario:
                     }, 423
             except Exception:
                 pass
-
         with conn() as c:
             row = c.execute(
                 "SELECT password, categorias FROM usuarios WHERE usuario = ?",
                 (user,)
             ).fetchone()
-
         if row and row["password"] == password:
             Usuario._set_intentos(user, 0, None)
             try:
@@ -196,7 +186,6 @@ class Usuario:
                 "categoria_sugerida": cat_random,
                 "usuario": user
             }, 200
-            
         fails = (fails or 0) + 1
         if fails >= MAX_INTENTOS:
             bloqueado_hasta = (now + timedelta(minutes=LOCK_MINUTES)).isoformat()
@@ -207,7 +196,6 @@ class Usuario:
                 "attempts_left": 0,
                 "message": "Demasiados intentos. Cuenta bloqueada temporalmente"
             }, 401
-
         Usuario._set_intentos(user, fails, None)
         return {
             "ok": False,
@@ -215,7 +203,6 @@ class Usuario:
             "attempts_left": MAX_INTENTOS - fails,
             "message": "Usuario o contraseña incorrectos"
         }, 401
-
 class Libro:
     @staticmethod
     def init_tablas_libro():
@@ -568,6 +555,59 @@ def api_delete_leido():
         return jsonify({"ok": True, "message": "Libro eliminado de leídos", "id_libro": id_libro}), 200
     finally:
         conn_obj.close()
+@app.route("/api/mover_por_leer_a_leyendo", methods=["POST"])
+def api_mover_por_leer_a_leyendo():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+    data = request.get_json() or {}
+    id_libro = data.get("id_libro")
+    horas_dia = data.get("horas_dia")
+    if id_libro is None:
+        return jsonify({"ok": False, "message": "Falta id_libro en el JSON"}), 400
+    if horas_dia is None:
+        return jsonify({"ok": False, "message": "Falta horas_dia en el JSON"}), 400
+    conn_obj = conn()
+    try:
+        with conn_obj as c:
+            c.execute("PRAGMA foreign_keys = ON;")
+            if not c.execute("SELECT 1 FROM libros WHERE id_libro = ?", (id_libro,)).fetchone():
+                return jsonify({"ok": False, "message": "El libro no existe en la base de datos"}), 404
+            if not c.execute("SELECT 1 FROM por_leer WHERE user = ? AND id_libro = ?", (user, id_libro)).fetchone():
+                return jsonify({"ok": False, "message": "El libro no está en tu lista 'por leer'"}), 404
+            fila_user = c.execute("SELECT tiempo FROM usuarios WHERE usuario = ?", (user,)).fetchone()
+            columna_tiempo = "tiempo"
+            if not fila_user:
+                fila_user = c.execute("SELECT horas_libres FROM usuarios WHERE usuario = ?", (user,)).fetchone()
+                columna_tiempo = "horas_libres"
+            if not fila_user:
+                return jsonify({"ok": False, "message": "Usuario no encontrado"}), 404
+            try:
+                tiempo_actual = float(fila_user[0])
+            except Exception:
+                tiempo_actual = 0.0
+            if tiempo_actual <= 0:
+                return jsonify({"ok": False, "message": "No tienes horas libres disponibles"}), 400
+            if horas_dia > tiempo_actual:
+                return jsonify({"ok": False, "message": "No tienes suficiente tiempo libre para este plan"}), 400
+            if c.execute("SELECT 1 FROM leyendo WHERE user = ? AND id_libro = ?", (user, id_libro)).fetchone():
+                return jsonify({"ok": False, "message": "El libro ya está en tu lista 'leyendo'"}), 409
+            try:
+                c.execute("INSERT INTO leyendo (user, id_libro, plan) VALUES (?, ?, ?)", (user, id_libro, horas_dia))
+            except sqlite3.IntegrityError as e:
+                return jsonify({"ok": False, "message": "No se pudo agregar a 'leyendo'", "detail": str(e)}), 400
+            nuevo_tiempo = tiempo_actual - horas_dia
+            c.execute(f"UPDATE usuarios SET {columna_tiempo} = ? WHERE usuario = ?", (nuevo_tiempo, user))
+            c.execute("DELETE FROM por_leer WHERE user = ? AND id_libro = ?", (user, id_libro))
+            return jsonify({
+                "ok": True,
+                "message": "Libro movido a 'leyendo' correctamente",
+                "id_libro": id_libro,
+                "horas_dia": horas_dia,
+                "tiempo_libre_restante": nuevo_tiempo
+            }), 201
+    finally:
+        conn_obj.close()
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
@@ -577,7 +617,6 @@ def api_register():
     categorias_list = data.get("categorias")
     body, code = Usuario.registrar(usuario, password, tiempo_libre, categorias_list)
     return jsonify(body), code
-
 @app.route("/api/login", methods=["POST"])
 def api_login():
     data = request.get_json() or {}
@@ -585,7 +624,6 @@ def api_login():
     contrasena = data.get("contrasena") or data.get("password") or ""
     body, code = Usuario.login(user, contrasena)
     return jsonify(body), code
-
 @app.route("/api/me", methods=["GET"])
 def api_me():
     user = session.get("usuario")
@@ -593,13 +631,11 @@ def api_me():
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
     cats = Usuario._get_categorias_usuario(user)
     return jsonify({"ok": True, "usuario": user, "cat": cats}), 200
-
 @app.route("/api/libros", methods=["POST"])
 def api_libros_create():
     data = request.get_json() or {}
     body, code = Libro.agregar(data)
     return jsonify(body), code
-
 if __name__ == "__main__":
     Usuario.init_tablas_usuario()
     Libro.init_tablas_libro()
