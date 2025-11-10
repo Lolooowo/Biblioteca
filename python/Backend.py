@@ -47,7 +47,7 @@ def por_leer():
         c.execute("""
             CREATE TABLE IF NOT EXISTS por_leer (
                 user     TEXT    NOT NULL,
-                id_libro INTEGER NOT NULL,
+                id_libro TEXT NOT NULL,
                 PRIMARY KEY (user, id_libro),
                 FOREIGN KEY (user)     REFERENCES usuarios(usuario)   ON DELETE CASCADE,
                 FOREIGN KEY (id_libro) REFERENCES libros(id_libro)    ON DELETE CASCADE
@@ -221,7 +221,7 @@ class Libro:
         with conn() as c:
             c.execute("""
             CREATE TABLE IF NOT EXISTS libros (
-                   id_libro INTEGER PRIMARY KEY,
+                   id_libro TEXT PRIMARY KEY,
                    titulo TEXT NOT NULL,
                    autores TEXT NOT NULL,
                    categoria TEXT NOT NULL,
@@ -266,8 +266,7 @@ class Libro:
             return {"ok": False, "message": "El libro ya existe (id duplicado)"}, 409
 @app.route("/api/por-leer", methods=["POST"])
 def api_agregar_por_leer():
-    #user = session.get("usuario")
-    user = usuario_permanente
+    user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión"}), 401
     data = request.get_json() or {}
