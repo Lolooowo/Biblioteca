@@ -46,6 +46,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+
+
 function abrirMenuLibro(libro){
   const menu = document.getElementById("menuLibro");
   const imagen = document.getElementById("imagenLibro");
