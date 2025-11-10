@@ -45,25 +45,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error al cargar los libros que se están leyendo", error);
   }
 });
+const pasarLeidos = document.getElementById("pasarLeidos");
+pasarLeidos?.addEventListener("click", async () => {
+    if (!libroSeleccionado) return;
+    try{
+        const resp = await fetch("http://127.0.0.1:5000/api/mover_a_leidos",{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({id_libro: libroSeleccionado.id_libro
+            })
+        });
+        const datos = await resp.json();
+        if (!resp.ok) {
+            throw new Error(datos.message || "Error al mover el libro a Leídos");
+        }
+        alert("Libro movido a Leídos correctamente.");
+    } catch (error) {
+        console.error("Error al mover el libro a Leídos", error);
+    }
+});
 
-function abrirMenuLibro(libro){
+
+
+function abrirMenuLibro(libro, libros) {
+  libroSeleccionado = libro;
+
   const menu = document.getElementById("menuLibro");
   const imagen = document.getElementById("imagenLibro");
   const titulo = document.getElementById("tituloLibro");
   const autor = document.getElementById("autorLibro");
   const descripcion = document.getElementById("descripcionLibro");
 
-  imagen.src = libro.portada;
-  imagen.alt = libro.titulo;
-  titulo.textContent = libro.titulo;
-  autor.textContent =  `Por: ${libro.autores.join(", ")}`;
-  descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
-  menu.classList.add("active");
-};
-function cerrarMenuLibro(){
-  const menu = document.getElementById("menuLibro");
-  menu.classList.remove("active");
-}
-const BtnCerrarMenu = document.getElementById("cerrarMenu");
+  if (imagen) {
+    imagen.src = libro.portada;
+    imagen.alt = libro.titulo;
+  }
+  if (titulo) titulo.textContent = libro.titulo;
+  if (autor) autor.textContent = `Por: ${libro.autores.join(", ")}`;
+  if (descripcion) descripcion.textContent = libro.descripcion || "Sin descripción disponible.";
+  menu?.classList.add("active");
 
-BtnCerrarMenu.addEventListener("click", cerrarMenuLibro);
+  const BtnCerrarMenu = document.getElementById("cerrarMenu");
+  if (BtnCerrarMenu) {
+    BtnCerrarMenu.onclick = () => cerrarMenuLibro(libros);
+  }
+}
+
+function cerrarMenuLibro(libros) {
+  const menu = document.getElementById("menuLibro");
+  menu?.classList.remove("active");
+}
