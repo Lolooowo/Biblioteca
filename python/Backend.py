@@ -583,7 +583,7 @@ def api_delete_por_leer():
     try:
         with conn() as c:
             row = c.execute(
-                "SELECT * FROM por_leer WHERE id_libro = ? AND usuario = ?",
+                "SELECT * FROM por_leer WHERE id_libro = ? AND user = ?",
                 (id_libro, user)
             ).fetchone()
             if not row:
@@ -592,7 +592,7 @@ def api_delete_por_leer():
                     "message": "El libro no se encuentra en la lista 'por leer'"
                 }), 404
             c.execute(
-                "DELETE FROM por_leer WHERE id_libro = ? AND usuario = ?",
+                "DELETE FROM por_leer WHERE id_libro = ? AND user = ?",
                 (id_libro, user)
             )
             c.commit()
