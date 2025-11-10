@@ -13,19 +13,27 @@ PAG_POR_HORA = 30
 usuario_permanente = ""
 app = Flask(__name__)
 app.secret_key = "elizabethrosebloodflame"
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [
-            "http://127.0.0.1:5500",
-            "http://127.0.0.1:5501",
-            "http://localhost:5500",
-            "http://localhost:5501"
-        ],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
-    }
-})
+ALLOWED_ORIGINS = {
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:5501",
+    "http://localhost:5500",
+    "http://localhost:5501",
+}
+
+CORS(app,
+     resources={r"/api/*": {"origins": list(ALLOWED_ORIGINS)}},
+     supports_credentials=True)
+
+@app.after_request
+def add_cors_headers(resp):
+    origin = request.headers.get("Origin")
+    if origin in ALLOWED_ORIGINS and request.path.startswith("/api/"):
+        resp.headers["Access-Control-Allow-Origin"] = origin
+        resp.headers["Vary"] = "Origin"
+        resp.headers["Access-Control-Allow-Credentials"] = "true"
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    return resp
 def conn():
     c = sqlite3.connect(DB_NAME, check_same_thread=False)
     c.row_factory = sqlite3.Row
@@ -489,37 +497,52 @@ def api_listar_por_leer():
         d["autores"] = parse_autores(d.get("autores"))
         libros.append(d)
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
-@app.route("/api/mover_a_leidos", methods=["POST","OPTIONS"])
+@app.route("/api/mover_a_leidos", methods=["POST", "OPTIONS"])
 def api_mover_a_leidos():
+    if request.method == "OPTIONS":
+        return ("", 204)
+
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
-    data = request.get_json()
+
+    data = request.get_json() or {}
     id_libro = data.get("id_libro")
     if not id_libro:
         return jsonify({"ok": False, "message": "Falta el id_libro"}), 400
+
+    # Ojo: corrige nombres de tablas/columnas para que existan de verdad
     with conn() as c:
         fila_leyendo = c.execute("""
             SELECT plan FROM leyendo
              WHERE user = ? AND id_libro = ?
         """, (user, id_libro)).fetchone()
         if not fila_leyendo:
-            return jsonify({"ok": False, "message": "El libro no está en la lista de 'leyendo'"}), 404
-        plan_horas = fila_leyendo["plan"]
+            return jsonify({"ok": False, "message": "El libro no está en 'leyendo'"}), 404
+
+        plan_horas = float(fila_leyendo["plan"])
+
+        # Normaliza nombres de columnas: en tu código usas 'tiempo' y también 'horas_libres'
+        # Elige una columna real; aquí asumo 'tiempo' que sí creaste en usuarios.
         c.execute("""
             UPDATE usuarios
-               SET horas_libres = horas_libres + ?
-             WHERE user = ?
+               SET tiempo = tiempo + ?
+             WHERE usuario = ?
         """, (plan_horas, user))
+
+        # Normaliza nombre de tabla: tienes 'leido' y también usas 'leidos' aquí.
+        # Usa 'leido' que sí creaste arriba.
         c.execute("""
-            INSERT INTO leidos (user, id_libro, fecha_leido)
-            VALUES (?, ?, CURRENT_TIMESTAMP)
+            INSERT INTO leido (user, id_libro)
+            VALUES (?, ?)
         """, (user, id_libro))
+
         c.execute("""
             DELETE FROM leyendo
              WHERE user = ? AND id_libro = ?
         """, (user, id_libro))
-    return jsonify({"ok": True, "message": "Libro movido a 'leídos' correctamente"}), 200
+
+    return jsonify({"ok": True, "message": "Libro movido a 'leído' correctamente"}), 200
 @app.route("/api/leidos/delete", methods=["POST"])
 def api_delete_leido():
     user = session.get("usuario")

@@ -52,12 +52,9 @@ pasarLeidos?.addEventListener("click", async () => {
     try{
         const resp = await fetch("http://127.0.0.1:5000/api/mover_a_leidos",{
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({id_libro: libroSeleccionado.id_libro
-            })
+            body: JSON.stringify({id_libro: libroSeleccionado.id_libro})
         });
         const datos = await resp.json();
         if (!resp.ok) {
