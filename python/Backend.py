@@ -35,7 +35,7 @@ def leyendo():
         c.execute("""
             CREATE TABLE IF NOT EXISTS leyendo (
                 user     TEXT    NOT NULL,
-                id_libro INTEGER NOT NULL,
+                id_libro TEXT NOT NULL,
                 plan     INTEGER NOT NULL,
                 PRIMARY KEY (user, id_libro),
                 FOREIGN KEY (user)     REFERENCES usuarios(usuario)   ON DELETE CASCADE,
@@ -58,7 +58,7 @@ def leido():
         c.execute("""
             CREATE TABLE IF NOT EXISTS leido (
                 user     TEXT    NOT NULL,
-                id_libro INTEGER NOT NULL,
+                id_libro TEXT NOT NULL,
                 PRIMARY KEY (user, id_libro),
                 FOREIGN KEY (user)     REFERENCES usuarios(usuario)   ON DELETE CASCADE,
                 FOREIGN KEY (id_libro) REFERENCES libros(id_libro)    ON DELETE CASCADE
