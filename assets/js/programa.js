@@ -2,12 +2,26 @@
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
-const cat = "musica";
 const API_KEY = "AIzaSyAgkuRpajM23siZRnyA4GQhrpOxz0OmC1o";
 const BASE = "https://www.googleapis.com/books/v1/volumes";
 
 let libroSeleccionado = null;
 
+async function categoriaRandom() {
+    const resp = await fetch("http://127.0.0.1:5000/api/categoria/aleatoria", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+    const datos = await resp.json();
+    if (!resp.ok) {
+        throw new Error(datos.message || "Error al obtener una categoria del usuario");
+    }
+    return datos.cat;
+  }
+const cat = categoriaRandom;
 async function buscarLibrosCategoria(cat) {
   const urlCategorias = `https://www.googleapis.com/books/v1/volumes?q=subjects:${cat}$&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=${API_KEY}`;
   const busqueda = await fetch(urlCategorias);
@@ -192,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       const datos = await resp.json();
       if (!resp.ok) {
-        alert(datos.detail || "Error");
+        alert(datos.message || "Error");
         return;
       }
       alert("Libro agregado a tu lista de Por leer.");
