@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import json
 import os
 import random
+import ast
 DB_NAME = "biblioteca.db"
 LOCK_MINUTOS = 3
 MAX_INTENTOS = 3
@@ -264,6 +265,43 @@ class Libro:
             return {"ok": True, "message": "Libro agregado", "id_libro": id_libro}, 201
         except sqlite3.IntegrityError:
             return {"ok": False, "message": "El libro ya existe (id duplicado)"}, 409
+def parse_autores(raw):
+    """
+    Normaliza el campo 'autores' y devuelve siempre una lista de strings.
+    Acepta:
+      - lista Python o JSON literal -> ['A','B']
+      - string JSON -> '["A","B"]'
+      - string python-list -> "['A','B']"
+      - texto separado por comas/;| -> "A, B"
+      - None o "" -> []
+    """
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        return [str(x).strip() for x in raw if x is not None]
+    if isinstance(raw, str):
+        s = raw.strip()
+        if not s:
+            return []
+        try:
+            parsed = json.loads(s)
+            if isinstance(parsed, list):
+                return [str(x).strip() for x in parsed if x is not None]
+        except Exception:
+            pass
+        try:
+            parsed = ast.literal_eval(s)
+            if isinstance(parsed, (list, tuple)):
+                return [str(x).strip() for x in parsed if x is not None]
+        except Exception:
+            pass
+        for sep in (",", ";", "|"):
+            if sep in s:
+                parts = [p.strip() for p in s.split(sep) if p.strip()]
+                if parts:
+                    return parts
+        return [s]
+    return [str(raw)]
 @app.route("/api/por-leer", methods=["POST"])
 def api_agregar_por_leer():
     user = session.get("usuario")
@@ -445,8 +483,8 @@ def api_listar_leyendo():
                 d["plan"] = float(d["plan"])
             except Exception:
                 pass
+            d["autores"] = parse_autores(d.get("autores"))
         libros.append(d)
-
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
 @app.route("/api/por-leers", methods=["GET"])
 def api_listar_por_leer():
@@ -463,11 +501,9 @@ def api_listar_por_leer():
              WHERE pl.user = ?
              ORDER BY l.titulo
         """, (user,)).fetchall()
-
     libros = [dict(f) for f in filas]
 
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
-    return jsonify({"ok": True, "libros": libros}), 200
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
