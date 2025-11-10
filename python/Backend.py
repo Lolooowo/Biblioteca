@@ -66,7 +66,7 @@ def leido():
         """)
 class Usuario:
     @staticmethod
-    def init_tablas():
+    def init_tablas_usuario():
         with conn() as c:
             c.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
@@ -217,7 +217,7 @@ class Usuario:
 
 class Libro:
     @staticmethod
-    def init_tablas():
+    def init_tablas_libro():
         with conn() as c:
             c.execute("""
             CREATE TABLE IF NOT EXISTS libros (
@@ -501,8 +501,8 @@ def api_libros_create():
     return jsonify(body), code
 
 if __name__ == "__main__":
-    Usuario.init_tablas()
-    Libro.init_tablas()
+    Usuario.init_tablas_usuario()
+    Libro.init_tablas_libro()
     leyendo()       
     por_leer()
     leido()
