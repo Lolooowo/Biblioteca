@@ -607,44 +607,29 @@ def api_delete_por_leer():
             "message": f"Error al eliminar el libro: {e}"
         }), 500
 @app.route("/api/categoria/aleatoria", methods=["GET"])
-def api_categoria_aleatoria():
+def api_categoria_usuario_aleatoria():
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
     try:
         with conn() as c:
-            categorias = c.execute("""
-                SELECT DISTINCT l.categoria
-                  FROM libros l
-                  JOIN leido li ON li.id_libro = l.id_libro
-                 WHERE li.usuario = ?
-                UNION
-                SELECT DISTINCT l.categoria
-                  FROM libros l
-                  JOIN por_leer pl ON pl.id_libro = l.id_libro
-                 WHERE pl.usuario = ?
-                UNION
-                SELECT DISTINCT l.categoria
-                  FROM libros l
-                  JOIN leyendo ly ON ly.id_libro = l.id_libro
-                 WHERE ly.usuario = ?
-            """, (user, user, user)).fetchall()
-            if not categorias:
-                return jsonify({
-                    "ok": False,
-                    "message": "El usuario no tiene categorías registradas"
-                }), 404
-            categorias_list = [row["categoria"] for row in categorias if row["categoria"]]
-            categoria_random = random.choice(categorias_list)
-        return jsonify({
-            "ok": True,
-            "categoria": categoria_random
-        }), 200
+            fila = c.execute("SELECT categorias FROM usuarios WHERE usuario = ?", (user,)).fetchone()
+            if not fila or not fila["categorias"]:
+                return jsonify({"ok": False, "message": "No se encontraron categorías para el usuario"}), 404
+            raw = fila["categorias"]
+            try:
+                cats = json.loads(raw)
+                if not isinstance(cats, list):
+                    return jsonify({"ok": False, "message": "Formato de categorias inválido"}), 500
+            except Exception:
+                return jsonify({"ok": False, "message": "Error parseando categorias (json inválido)"}), 500
+            cats = [str(x).strip() for x in cats if x is not None and str(x).strip()]
+            if not cats:
+                return jsonify({"ok": False, "message": "El usuario no tiene categorías útiles"}, 404)
+            chosen = random.choice(cats)
+        return jsonify({"ok": True, "categoria": chosen, "count": len(cats)}), 200
     except Exception as e:
-        return jsonify({
-            "ok": False,
-            "message": f"Error al seleccionar categoría: {e}"
-        }), 500
+        return jsonify({"ok": False, "message": f"Error interno: {e}"}), 500
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
