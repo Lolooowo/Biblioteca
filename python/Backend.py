@@ -459,7 +459,12 @@ def api_listar_leidos():
             WHERE li.user = ?
             ORDER BY l.titulo
         """, (user,)).fetchall()
-    libros = [dict(f) for f in filas]
+    libros = []
+    for f in filas:
+        d = dict(f)
+        d["autores"] = parse_autores(d.get("autores"))
+        libros.append(d)
+    return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
 @app.route("/api/leyendos", methods=["GET"])
 def api_listar_leyendo():
     user = session.get("usuario")
@@ -491,7 +496,6 @@ def api_listar_por_leer():
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
-
     with conn() as c:
         filas = c.execute("""
             SELECT l.id_libro, l.titulo, l.autores, l.categoria, l.portada,
@@ -501,9 +505,66 @@ def api_listar_por_leer():
              WHERE pl.user = ?
              ORDER BY l.titulo
         """, (user,)).fetchall()
+        d["autores"] = parse_autores(d.get("autores"))
     libros = [dict(f) for f in filas]
-
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
+@app.route("/api/mover_a_leidos", methods=["POST"])
+def api_mover_a_leidos():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+    data = request.get_json()
+    id_libro = data.get("id_libro")
+    if not id_libro:
+        return jsonify({"ok": False, "message": "Falta el id_libro"}), 400
+    with conn() as c:
+        fila_leyendo = c.execute("""
+            SELECT plan FROM leyendo
+             WHERE user = ? AND id_libro = ?
+        """, (user, id_libro)).fetchone()
+        if not fila_leyendo:
+            return jsonify({"ok": False, "message": "El libro no está en la lista de 'leyendo'"}), 404
+        plan_horas = fila_leyendo["plan"]
+        c.execute("""
+            UPDATE usuarios
+               SET horas_libres = horas_libres + ?
+             WHERE user = ?
+        """, (plan_horas, user))
+        c.execute("""
+            INSERT INTO leidos (user, id_libro, fecha_leido)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+        """, (user, id_libro))
+        c.execute("""
+            DELETE FROM leyendo
+             WHERE user = ? AND id_libro = ?
+        """, (user, id_libro))
+    return jsonify({"ok": True, "message": "Libro movido a 'leídos' correctamente"}), 200
+@app.route("/api/leidos/delete", methods=["POST"])
+def api_delete_leido():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+    data = request.get_json() or {}
+    id_libro = data.get("id_libro")
+    if id_libro is None:
+        return jsonify({"ok": False, "message": "Falta id_libro en el JSON"}), 400
+    id_libro = str(id_libro).strip()
+    conn_obj = conn()
+    try:
+        with conn_obj as c:
+            deleted = False
+            for tbl in ("leido", "leidos"):
+                try:
+                    if _delete_from_table(c, tbl, user, id_libro):
+                        deleted = True
+                        break
+                except sqlite3.OperationalError:
+                    continue
+            if not deleted:
+                return jsonify({"ok": False, "message": "Entrada no encontrada en leídos"}), 404
+        return jsonify({"ok": True, "message": "Libro eliminado de leídos", "id_libro": id_libro}), 200
+    finally:
+        conn_obj.close()
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
