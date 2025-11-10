@@ -504,6 +504,37 @@ def api_listar_por_leer():
         d["autores"] = parse_autores(d.get("autores"))
     libros = [dict(f) for f in filas]
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
+@app.route("/api/mover_a_leidos", methods=["POST"])
+def api_mover_a_leidos():
+    user = session.get("usuario")
+    if not user:
+        return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+    data = request.get_json()
+    id_libro = data.get("id_libro")
+    if not id_libro:
+        return jsonify({"ok": False, "message": "Falta el id_libro"}), 400
+    with conn() as c:
+        fila_leyendo = c.execute("""
+            SELECT plan FROM leyendo
+             WHERE user = ? AND id_libro = ?
+        """, (user, id_libro)).fetchone()
+        if not fila_leyendo:
+            return jsonify({"ok": False, "message": "El libro no está en la lista de 'leyendo'"}), 404
+        plan_horas = fila_leyendo["plan"]
+        c.execute("""
+            UPDATE usuarios
+               SET horas_libres = horas_libres + ?
+             WHERE user = ?
+        """, (plan_horas, user))
+        c.execute("""
+            INSERT INTO leidos (user, id_libro, fecha_leido)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+        """, (user, id_libro))
+        c.execute("""
+            DELETE FROM leyendo
+             WHERE user = ? AND id_libro = ?
+        """, (user, id_libro))
+    return jsonify({"ok": True, "message": "Libro movido a 'leídos' correctamente"}), 200
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
