@@ -459,6 +459,7 @@ def api_listar_leidos():
             WHERE li.user = ?
             ORDER BY l.titulo
         """, (user,)).fetchall()
+        d["autores"] = parse_autores(d.get("autores"))
     libros = [dict(f) for f in filas]
 @app.route("/api/leyendos", methods=["GET"])
 def api_listar_leyendo():
@@ -491,7 +492,6 @@ def api_listar_por_leer():
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
-
     with conn() as c:
         filas = c.execute("""
             SELECT l.id_libro, l.titulo, l.autores, l.categoria, l.portada,
@@ -501,8 +501,8 @@ def api_listar_por_leer():
              WHERE pl.user = ?
              ORDER BY l.titulo
         """, (user,)).fetchall()
+        d["autores"] = parse_autores(d.get("autores"))
     libros = [dict(f) for f in filas]
-
     return jsonify({"ok": True, "count": len(libros), "libros": libros}), 200
 @app.route("/api/register", methods=["POST"])
 def api_register():
