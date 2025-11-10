@@ -501,17 +501,13 @@ def api_listar_por_leer():
 def api_mover_a_leidos():
     if request.method == "OPTIONS":
         return ("", 204)
-
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
-
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
     if not id_libro:
         return jsonify({"ok": False, "message": "Falta el id_libro"}), 400
-
-    # Ojo: corrige nombres de tablas/columnas para que existan de verdad
     with conn() as c:
         fila_leyendo = c.execute("""
             SELECT plan FROM leyendo
@@ -521,22 +517,15 @@ def api_mover_a_leidos():
             return jsonify({"ok": False, "message": "El libro no está en 'leyendo'"}), 404
 
         plan_horas = float(fila_leyendo["plan"])
-
-        # Normaliza nombres de columnas: en tu código usas 'tiempo' y también 'horas_libres'
-        # Elige una columna real; aquí asumo 'tiempo' que sí creaste en usuarios.
         c.execute("""
             UPDATE usuarios
                SET tiempo = tiempo + ?
              WHERE usuario = ?
         """, (plan_horas, user))
-
-        # Normaliza nombre de tabla: tienes 'leido' y también usas 'leidos' aquí.
-        # Usa 'leido' que sí creaste arriba.
         c.execute("""
             INSERT INTO leido (user, id_libro)
             VALUES (?, ?)
         """, (user, id_libro))
-
         c.execute("""
             DELETE FROM leyendo
              WHERE user = ? AND id_libro = ?
