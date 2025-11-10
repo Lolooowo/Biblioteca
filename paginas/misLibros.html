@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/inicio.css">
     <link rel="stylesheet" href="../assets/css/perfil.css">
-    <title>Mis libros</title>
+    <title>Libros Leídos</title>
 </head>
 <body>
     <header>
@@ -43,11 +43,51 @@
             </svg>
           </span>
         </a>
+        <a href="/paginas/../paginas/recomen.html" class="profile-link" aria-label="Por leer">
+            <span class="book-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="7"></circle>
+                <path d="M12 8v4"></path>
+                <path d="M12 12l2.2 2.2"></path>
+                <path d="M12 5v-2"></path>
+                <path d="M19 12h2"></path>
+                <path d="M12 21v2"></path>
+                <path d="M3 12H1"></path>
+                  </svg>
+              </span>
+          </a>
       </div>
     </div>
   </header>
   <main>
-
+    <h2 class="section-title" id="tituloMain">Libros leídos:</h2>
+    <div class="books-grio" id="librosGrid"></div>
   </main>
+  <div class="modal-overlay" id="menuLibro">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Detalles del Libro</h2>
+        <button class="close-modal" id="cerrarMenu">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="book-details">
+          <img src="" alt="" class="book-details-imagen" id="imagenLibro">
+          <div class="book-details-info">
+            <h3 class="book-details-title" id="tituloLibro"></h3>
+            <p class="book-details-author" id="autorLibro"></p>
+          </div>
+        </div>
+        <p class="book-description" id="descripcionLibro">
+          aqui va la descripcion del libro en el java.
+        </p>
+        <div class="modal-actions">
+          <button class="action-button primary" id="libroLeyendo">
+            Eliminar de "Leyendo"
+          </button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="../assets/js/leidos.js"></script>
 </body>
 </html>
