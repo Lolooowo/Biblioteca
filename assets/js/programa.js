@@ -21,7 +21,7 @@ async function categoriaRandom() {
     }
     return datos.cat;
   }
-const cat = categoriaRandom;
+const cat = categoriaRandom();
 async function buscarLibrosCategoria(cat) {
   const urlCategorias = `https://www.googleapis.com/books/v1/volumes?q=subjects:${cat}$&maxResults=40&startIndex=0&orderBy=relevance&langRestrict=es&key=${API_KEY}`;
   const busqueda = await fetch(urlCategorias);
