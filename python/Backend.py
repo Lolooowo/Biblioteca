@@ -545,7 +545,7 @@ def api_delete_leido():
     try:
         with conn() as c:
             row = c.execute(
-                "SELECT * FROM leidos WHERE id_libro = ? AND usuario = ?",
+                "SELECT * FROM leido WHERE id_libro = ? AND usuario = ?",
                 (id_libro, user)
             ).fetchone()
             if not row:
@@ -554,7 +554,7 @@ def api_delete_leido():
                     "message": "El libro no se encuentra en la tabla de leídos"
                 }), 404
             c.execute(
-                "DELETE FROM leidos WHERE id_libro = ? AND usuario = ?",
+                "DELETE FROM leido WHERE id_libro = ? AND usuario = ?",
                 (id_libro, user)
             )
             c.commit()
