@@ -109,7 +109,7 @@ function renderLibros(libros){
       <p class="book-author">${libro.autores.join(", ")}</p>
       </div>
     `;
-    libroCard.addEventListener("click", () => abrirMenuLibro(libro));
+    libroCard.addEventListener("click", () => abrirMenuLibro(libro, libros));
     
     librosGrind.appendChild(libroCard);
   });
@@ -154,12 +154,16 @@ async function showRecomendaciones(){
   renderLibros(libros);
 }
 
-function abrirMenuLibro(libro){
+function abrirMenuLibro(libro, libros){
   const menu = document.getElementById("menuLibro");
   const imagen = document.getElementById("imagenLibro");
   const titulo = document.getElementById("tituloLibro");
   const autor = document.getElementById("autorLibro");
   const descripcion = document.getElementById("descripcionLibro");
+  const BtnCerrarMenu = document.getElementById("cerrarMenu");
+  document.getElementById("cerrarMenu").addEventListener("click", () => {
+    cerrarMenuLibro(libros);
+  });
 
   imagen.src = libro.portada;
   imagen.alt = libro.titulo;
@@ -193,6 +197,7 @@ document.getElementById("porLeer").addEventListener("click", async () => {
         alert(datos.detail)
         return;
       }
+      renderLibros(libros);
       alert("Libro agregado a tu lista de libros Por Leer.");
     } catch (error){
       alert("Error en el servidor. Intente más tarde.");
@@ -252,6 +257,7 @@ if(submenu && leyendo){
         alert(datos.message)
         return;
       }
+      renderLibros(libros);
       alert("Libro agregado a tu lista de libros leyendo.");
     } catch (error){
       alert("Error en el servidor. Intente más tarde.");
@@ -285,6 +291,7 @@ document.getElementById("leidos").addEventListener("click", async () => {
         alert(datos.message)
         return;
       }
+      renderLibros(libros);
       alert("Libro agregado a tu lista de libros leídos.");
     } catch (error){
       alert("Error en el servidor. Intente más tarde.");
@@ -292,13 +299,13 @@ document.getElementById("leidos").addEventListener("click", async () => {
 });
 }
 
-function cerrarMenuLibro(){
+function cerrarMenuLibro(libros){
+  renderLibros(libros);
   const menu = document.getElementById("menuLibro");
   menu.classList.remove("active");
+  
 }
-const BtnCerrarMenu = document.getElementById("cerrarMenu");
 
-BtnCerrarMenu.addEventListener("click", cerrarMenuLibro);
 
 
 
