@@ -501,17 +501,13 @@ def api_listar_por_leer():
 def api_mover_a_leidos():
     if request.method == "OPTIONS":
         return ("", 204)
-
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
-
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
     if not id_libro:
         return jsonify({"ok": False, "message": "Falta el id_libro"}), 400
-
-    # Ojo: corrige nombres de tablas/columnas para que existan de verdad
     with conn() as c:
         fila_leyendo = c.execute("""
             SELECT plan FROM leyendo
@@ -521,22 +517,15 @@ def api_mover_a_leidos():
             return jsonify({"ok": False, "message": "El libro no está en 'leyendo'"}), 404
 
         plan_horas = float(fila_leyendo["plan"])
-
-        # Normaliza nombres de columnas: en tu código usas 'tiempo' y también 'horas_libres'
-        # Elige una columna real; aquí asumo 'tiempo' que sí creaste en usuarios.
         c.execute("""
             UPDATE usuarios
                SET tiempo = tiempo + ?
              WHERE usuario = ?
         """, (plan_horas, user))
-
-        # Normaliza nombre de tabla: tienes 'leido' y también usas 'leidos' aquí.
-        # Usa 'leido' que sí creaste arriba.
         c.execute("""
             INSERT INTO leido (user, id_libro)
             VALUES (?, ?)
         """, (user, id_libro))
-
         c.execute("""
             DELETE FROM leyendo
              WHERE user = ? AND id_libro = ?
@@ -579,59 +568,44 @@ def api_delete_leido():
             "ok": False,
             "message": f"Error al eliminar el libro: {e}"
         }), 500
-@app.route("/api/mover_por_leer_a_leyendo", methods=["POST"])
-def api_mover_por_leer_a_leyendo():
+@app.route("/api/por_leer/delete", methods=["POST"])
+def api_delete_por_leer():
     user = session.get("usuario")
     if not user:
         return jsonify({"ok": False, "message": "No hay sesión activa"}), 401
+
     data = request.get_json() or {}
     id_libro = data.get("id_libro")
-    horas_dia = data.get("horas_dia")
-    if id_libro is None:
+    if not id_libro:
         return jsonify({"ok": False, "message": "Falta id_libro en el JSON"}), 400
-    if horas_dia is None:
-        return jsonify({"ok": False, "message": "Falta horas_dia en el JSON"}), 400
-    conn_obj = conn()
+
+    id_libro = str(id_libro).strip()
     try:
-        with conn_obj as c:
-            c.execute("PRAGMA foreign_keys = ON;")
-            if not c.execute("SELECT 1 FROM libros WHERE id_libro = ?", (id_libro,)).fetchone():
-                return jsonify({"ok": False, "message": "El libro no existe en la base de datos"}), 404
-            if not c.execute("SELECT 1 FROM por_leer WHERE user = ? AND id_libro = ?", (user, id_libro)).fetchone():
-                return jsonify({"ok": False, "message": "El libro no está en tu lista 'por leer'"}), 404
-            fila_user = c.execute("SELECT tiempo FROM usuarios WHERE usuario = ?", (user,)).fetchone()
-            columna_tiempo = "tiempo"
-            if not fila_user:
-                fila_user = c.execute("SELECT horas_libres FROM usuarios WHERE usuario = ?", (user,)).fetchone()
-                columna_tiempo = "horas_libres"
-            if not fila_user:
-                return jsonify({"ok": False, "message": "Usuario no encontrado"}), 404
-            try:
-                tiempo_actual = float(fila_user[0])
-            except Exception:
-                tiempo_actual = 0.0
-            if tiempo_actual <= 0:
-                return jsonify({"ok": False, "message": "No tienes horas libres disponibles"}), 400
-            if horas_dia > tiempo_actual:
-                return jsonify({"ok": False, "message": "No tienes suficiente tiempo libre para este plan"}), 400
-            if c.execute("SELECT 1 FROM leyendo WHERE user = ? AND id_libro = ?", (user, id_libro)).fetchone():
-                return jsonify({"ok": False, "message": "El libro ya está en tu lista 'leyendo'"}), 409
-            try:
-                c.execute("INSERT INTO leyendo (user, id_libro, plan) VALUES (?, ?, ?)", (user, id_libro, horas_dia))
-            except sqlite3.IntegrityError as e:
-                return jsonify({"ok": False, "message": "No se pudo agregar a 'leyendo'", "detail": str(e)}), 400
-            nuevo_tiempo = tiempo_actual - horas_dia
-            c.execute(f"UPDATE usuarios SET {columna_tiempo} = ? WHERE usuario = ?", (nuevo_tiempo, user))
-            c.execute("DELETE FROM por_leer WHERE user = ? AND id_libro = ?", (user, id_libro))
-            return jsonify({
-                "ok": True,
-                "message": "Libro movido a 'leyendo' correctamente",
-                "id_libro": id_libro,
-                "horas_dia": horas_dia,
-                "tiempo_libre_restante": nuevo_tiempo
-            }), 201
-    finally:
-        conn_obj.close()
+        with conn() as c:
+            row = c.execute(
+                "SELECT * FROM por_leer WHERE id_libro = ? AND usuario = ?",
+                (id_libro, user)
+            ).fetchone()
+            if not row:
+                return jsonify({
+                    "ok": False,
+                    "message": "El libro no se encuentra en la lista 'por leer'"
+                }), 404
+            c.execute(
+                "DELETE FROM por_leer WHERE id_libro = ? AND usuario = ?",
+                (id_libro, user)
+            )
+            c.commit()
+        return jsonify({
+            "ok": True,
+            "message": "Libro eliminado correctamente de la lista 'por leer'",
+            "id_libro": id_libro
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "message": f"Error al eliminar el libro: {e}"
+        }), 500
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json() or {}
