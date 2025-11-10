@@ -72,7 +72,7 @@ Servir front-end:
 
 Opción simple: abrir paginas/home.html con Live Server o un servidor estático.
 
-Opción integrada: si Backend.py sirve archivos estáticos, acceder a http://localhost:PUERTO/.
+Opción integrada: si Backend.py sirve archivos estáticos, acceder a http://127.0.0.1:5000/api/.
 
 Configuración
 Variables de entorno sugeridas: PORT, DB_URL o ruta de archivo JSON, TZ/LOCALE.
